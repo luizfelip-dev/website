@@ -92,7 +92,42 @@
           <div><p class="eyebrow">CADA ESCOLHA CONTA</p><h1>Meu painel financeiro<span class="heading-dot">.</span></h1><p class="page-subtitle">Tudo em um só lugar para você ir mais longe.</p></div>
           <div class="header-actions"><div class="month-label"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><time datetime="2026-11">Novembro de 2026</time></div><a class="button button-primary" href="#transacoes">Ver transações<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
         </header>
-        <div class="dashboard-grid"></div>
+        <div class="dashboard-grid">
+          <!-- 01 · Resumo mensal -->
+          <article class="card summary-card" aria-labelledby="summary-title">
+            <header class="card-header summary-header"><div class="card-heading"><h2 id="summary-title">Resumo do mês</h2><span class="period-note">01 a 30 de novembro</span></div><span class="badge badge-success"><span class="status-dot" aria-hidden="true"></span>Mês positivo</span></header>
+            <dl class="summary-stats">
+              <div class="stat stat-balance"><dt><span class="stat-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-wallet"/></svg></span>Saldo total</dt><dd>R$ 12.480<span>,90</span></dd><dd class="stat-note"><span class="positive"><svg class="icon icon-small" aria-hidden="true"><use href="#i-trend"/></svg>34,2%</span><span>vs. mês anterior</span></dd></div>
+              <div class="stat"><dt><span class="stat-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-income"/></svg></span>Receitas</dt><dd>R$ 8.500<span>,00</span></dd><dd class="stat-note"><span class="positive">+6,3%</span><span>vs. mês anterior</span></dd></div>
+              <div class="stat"><dt><span class="stat-icon tone-red"><svg class="icon" aria-hidden="true"><use href="#i-expense"/></svg></span>Despesas</dt><dd>R$ 5.319<span>,10</span></dd><dd class="stat-note"><span class="positive">−8,1%</span><span>vs. mês anterior</span></dd></div>
+              <div class="stat"><dt><span class="stat-icon tone-purple"><svg class="icon" aria-hidden="true"><use href="#i-trend"/></svg></span>Resultado líquido</dt><dd class="positive">R$ 3.180<span>,90</span></dd><dd class="stat-note"><span class="stat-note-dot" aria-hidden="true"></span><span>37,4% da sua receita</span></dd></div>
+            </dl>
+            <div class="summary-insight"><p><svg class="icon icon-small" aria-hidden="true"><use href="#i-check"/></svg><strong>Bom ritmo!</strong> Suas receitas superaram as despesas neste mês.</p><a class="text-link" href="#planejamento">Ver planejamento<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </article>
+
+          <!-- 02 · Gráficos desenhados exclusivamente com CSS -->
+          <article class="card analytics-card" id="relatorios" aria-labelledby="analytics-title">
+            <header class="card-header"><div class="card-title-group"><span class="section-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-pie"/></svg></span><div><h2 id="analytics-title">Seu dinheiro em perspectiva</h2><p class="card-subtitle">Entenda os números. Faça escolhas melhores.</p></div></div><span class="subtle-tag">Este mês</span></header>
+            <div class="charts-grid">
+              <figure class="category-figure">
+                <figcaption><h3>Distribuição por categoria</h3><p>Onde você investiu seu mês</p></figcaption>
+                <div class="category-visual">
+                  <div class="donut" role="img" aria-label="Despesas de R$ 5.319,10: Moradia 40%, Alimentação 25%, Transporte 15%, Lazer 10%, Outros 10%."><div class="donut-center"><span>Total de despesas</span><strong>R$ 5.319<small>,10</small></strong></div></div>
+                  <ul class="chart-legend" aria-label="Categorias de despesas"><li><span class="legend-dot dot-blue" aria-hidden="true"></span><span>Moradia</span><strong>40%</strong></li><li><span class="legend-dot dot-green" aria-hidden="true"></span><span>Alimentação</span><strong>25%</strong></li><li><span class="legend-dot dot-yellow" aria-hidden="true"></span><span>Transporte</span><strong>15%</strong></li><li><span class="legend-dot dot-purple" aria-hidden="true"></span><span>Lazer</span><strong>10%</strong></li><li><span class="legend-dot dot-slate" aria-hidden="true"></span><span>Outros</span><strong>10%</strong></li></ul>
+                </div>
+                <p class="figure-footnote"><span class="legend-dot dot-blue" aria-hidden="true"></span>Moradia é sua maior despesa.</p>
+              </figure>
+              <figure class="balance-figure">
+                <figcaption><h3>Evolução do saldo</h3><p>Um olhar sobre os últimos 6 meses</p></figcaption>
+                <div class="bar-chart" role="img" aria-label="Saldo final: junho R$ 7.200, julho R$ 8.100, agosto R$ 7.450, setembro R$ 9.420, outubro R$ 9.300, novembro R$ 12.480,90.">
+                  <div class="chart-scale" aria-hidden="true"><span>15 mil</span><span>10 mil</span><span>5 mil</span><span>0</span></div>
+                  <div class="bar-plot" aria-hidden="true"><div class="bar-column"><div class="bar bar-jun"></div><span class="bar-label">Jun</span></div><div class="bar-column"><div class="bar bar-jul"></div><span class="bar-label">Jul</span></div><div class="bar-column"><div class="bar bar-aug"></div><span class="bar-label">Ago</span></div><div class="bar-column"><div class="bar bar-sep"></div><span class="bar-label">Set</span></div><div class="bar-column"><div class="bar bar-oct"></div><span class="bar-label">Out</span></div><div class="bar-column"><span class="bar-value">12,5 mil</span><div class="bar bar-nov"></div><span class="bar-label current-month">Nov</span></div></div>
+                </div>
+                <p class="figure-footnote balance-footnote"><span class="positive"><svg class="icon icon-small" aria-hidden="true"><use href="#i-trend"/></svg>34,2%</span>em relação a outubro</p>
+              </figure>
+            </div>
+          </article>
+        </div>
       </main>
     </div>
   </body>
