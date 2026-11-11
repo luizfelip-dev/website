@@ -6,6 +6,7 @@
     <meta name="description" content="Finora: um painel para acompanhar seu saldo, organizar despesas e planejar suas próximas conquistas.">
     <meta name="theme-color" content="#F8FAFC">
     <title>Finora — Controle Financeiro</title>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preload" href="assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
   </head>
@@ -84,7 +85,7 @@
             <span class="today">Quarta-feira, <time datetime="2026-11-11">11 de novembro</time></span>
             <details class="notifications">
               <summary class="icon-button" aria-label="Notificações, 2 avisos"><svg class="icon" aria-hidden="true"><use href="#i-bell"/></svg><span class="notification-dot" aria-hidden="true"></span></summary>
-              <div class="notification-panel"><strong>Seu dia na Finora</strong><p>Internet vence hoje: <b>R$ 119,90</b>.</p><p>Seu orçamento de transporte atingiu <b>90%</b>.</p><a class="text-link" href="#contas">Conferir minhas contas <span aria-hidden="true">→</span></a></div>
+              <div class="notification-panel"><strong>Seu dia na Finora</strong><p>Internet vence hoje: <b>R$ 119,90</b>.</p><p>Seu orçamento de transporte atingiu <b>94%</b>.</p><a class="text-link" href="#contas">Conferir minhas contas <span aria-hidden="true">→</span></a></div>
             </details>
           </div>
         </div>
@@ -127,7 +128,68 @@
               </figure>
             </div>
           </article>
+          <!-- 03 · Agenda de contas -->
+          <article class="card bills-card" id="contas" aria-labelledby="bills-title">
+            <header class="card-header"><div class="card-title-group"><span class="section-icon tone-yellow"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></span><div><h2 id="bills-title">Contas a pagar e receber</h2><p class="card-subtitle">Seu mês, sem surpresas.</p></div></div></header>
+            <div class="bill-overview"><div><span>Total a pagar</span><strong>R$ 2.359<span>,90</span></strong></div><span class="badge badge-neutral">4 em aberto</span></div>
+            <div class="due-days" role="group" aria-label="Vencimentos de novembro"><a class="due-day due-today" href="#internet-bill"><strong>11</strong><span>Hoje</span><i aria-hidden="true"></i></a><a class="due-day" href="#rent-bill"><strong>15</strong><span>nov</span><i aria-hidden="true"></i></a><a class="due-day" href="#energy-bill"><strong>18</strong><span>nov</span><i aria-hidden="true"></i></a><a class="due-day" href="#card-bill"><strong>20</strong><span>nov</span><i aria-hidden="true"></i></a><a class="due-day" href="#freelance-bill"><strong>28</strong><span>nov</span><i aria-hidden="true"></i></a></div>
+            <div class="list-label"><h3>Próximos pagamentos</h3><span>Novembro</span></div>
+            <ul class="bill-list" aria-label="Contas a pagar">
+              <li id="internet-bill"><span class="item-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><div class="bill-description"><strong>Internet</strong><span>Serviços · 11 nov</span></div><div class="bill-value"><strong>R$ 119,90</strong><span class="badge badge-danger">Vence hoje</span></div></li>
+              <li id="rent-bill"><span class="item-icon tone-purple"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><div class="bill-description"><strong>Aluguel</strong><span>Moradia · 15 nov</span></div><div class="bill-value"><strong>R$ 1.800,00</strong><span class="badge badge-warning">Em aberto</span></div></li>
+              <li id="energy-bill"><span class="item-icon tone-yellow"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><div class="bill-description"><strong>Energia elétrica</strong><span>Moradia · 18 nov</span></div><div class="bill-value"><strong>R$ 160,00</strong><span class="badge badge-neutral">Em aberto</span></div></li>
+              <li id="card-bill"><span class="item-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-card"/></svg></span><div class="bill-description"><strong>Cartão de crédito</strong><span>Visa · 20 nov</span></div><div class="bill-value"><strong>R$ 280,00</strong><span class="badge badge-neutral">Em aberto</span></div></li>
+              <li><span class="item-icon tone-slate"><svg class="icon" aria-hidden="true"><use href="#i-card"/></svg></span><div class="bill-description"><strong>Streaming</strong><span>Assinaturas · 09 nov</span></div><div class="bill-value"><strong>R$ 55,90</strong><span class="badge badge-success"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Pago</span></div></li>
+            </ul>
+            <div class="list-label receivables-label"><h3>A receber</h3><span class="positive">R$ 500,00</span></div>
+            <ul class="bill-list receivable-list" aria-label="Contas a receber"><li id="freelance-bill"><span class="item-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-income"/></svg></span><div class="bill-description"><strong>Projeto freelance</strong><span>Renda extra · 28 nov</span></div><div class="bill-value"><strong class="positive">R$ 500,00</strong><span class="badge badge-success">Previsto</span></div></li></ul>
+            <a class="bills-footer text-link" href="#transacoes">Ver todas as movimentações<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+          </article>
+
+          <!-- 04 · Orçamentos com progressos acessíveis -->
+          <article class="card budget-card" id="planejamento" aria-labelledby="budget-title">
+            <header class="card-header"><div class="card-title-group"><span class="section-icon tone-purple"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg></span><div><h2 id="budget-title">Planejamento e orçamentos</h2><p class="card-subtitle">Um limite para os gastos. Mais espaço para os planos.</p></div></div><span class="subtle-tag">4 orçamentos</span></header>
+            <div class="budget-grid">
+              <div class="budget-item"><div class="budget-label"><h3><span class="legend-dot dot-blue" aria-hidden="true"></span>Moradia</h3><span>89%</span></div><p class="budget-amount">R$ 2.130,00<span> / R$ 2.400,00</span></p><div class="progress-track" role="progressbar" aria-label="Orçamento de moradia" aria-valuemin="0" aria-valuemax="2400" aria-valuenow="2130" aria-valuetext="R$ 2.130 de R$ 2.400, 89% utilizado"><div class="progress-fill progress-home"></div></div></div>
+              <div class="budget-item"><div class="budget-label"><h3><span class="legend-dot dot-green" aria-hidden="true"></span>Alimentação</h3><span>83%</span></div><p class="budget-amount">R$ 1.329,80<span> / R$ 1.600,00</span></p><div class="progress-track" role="progressbar" aria-label="Orçamento de alimentação" aria-valuemin="0" aria-valuemax="1600" aria-valuenow="1329.8" aria-valuetext="R$ 1.329,80 de R$ 1.600, 83% utilizado"><div class="progress-fill progress-food"></div></div></div>
+              <div class="budget-item"><div class="budget-label"><h3><span class="legend-dot dot-yellow" aria-hidden="true"></span>Transporte</h3><span class="budget-warning">94% · Atenção</span></div><p class="budget-amount">R$ 797,90<span> / R$ 850,00</span></p><div class="progress-track" role="progressbar" aria-label="Orçamento de transporte" aria-valuemin="0" aria-valuemax="850" aria-valuenow="797.9" aria-valuetext="R$ 797,90 de R$ 850, 94% utilizado, próximo ao limite"><div class="progress-fill progress-transport"></div></div></div>
+              <div class="budget-item"><div class="budget-label"><h3><span class="legend-dot dot-purple" aria-hidden="true"></span>Lazer</h3><span>76%</span></div><p class="budget-amount">R$ 531,90<span> / R$ 700,00</span></p><div class="progress-track" role="progressbar" aria-label="Orçamento de lazer" aria-valuemin="0" aria-valuemax="700" aria-valuenow="531.9" aria-valuetext="R$ 531,90 de R$ 700, 76% utilizado"><div class="progress-fill progress-leisure"></div></div></div>
+            </div>
+            <div class="budget-footer"><span class="budget-footer-icon"><svg class="icon icon-small" aria-hidden="true"><use href="#i-wallet"/></svg></span><p>Você ainda tem <strong>R$ 760,40</strong> disponíveis nos seus orçamentos.</p></div>
+          </article>
+
+          <!-- 05 · Metas de economia -->
+          <article class="card goals-card" id="metas" aria-labelledby="goals-title">
+            <header class="card-header"><div class="card-title-group"><span class="section-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><div><h2 id="goals-title">Metas de economia</h2><p class="card-subtitle">Seu dinheiro trabalhando pelos seus próximos capítulos.</p></div></div><span class="goals-total"><span class="status-dot" aria-hidden="true"></span>3 sonhos em movimento</span></header>
+            <div class="goals-grid">
+              <section class="goal-item" aria-labelledby="reserve-title"><div class="goal-top"><span class="goal-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><span class="goal-percentage">68<span>%</span></span></div><h3 id="reserve-title">Reserva de emergência</h3><p class="goal-description">Tranquilidade para o que vier.</p><p class="goal-amount"><strong>R$ 6.800,00</strong><span> de R$ 10.000,00</span></p><div class="progress-track" role="progressbar" aria-label="Reserva de emergência" aria-valuemin="0" aria-valuemax="10000" aria-valuenow="6800" aria-valuetext="R$ 6.800 de R$ 10.000, 68% da meta"><div class="progress-fill progress-reserve"></div></div><p class="goal-remaining">Faltam <strong>R$ 3.200,00</strong> para sua segurança.</p></section>
+              <section class="goal-item" aria-labelledby="travel-title"><div class="goal-top"><span class="goal-icon tone-purple"><svg class="icon" aria-hidden="true"><use href="#i-plane"/></svg></span><span class="goal-percentage goal-purple">49<span>%</span></span></div><h3 id="travel-title">Próxima viagem</h3><p class="goal-description">Novos destinos. Boas histórias.</p><p class="goal-amount"><strong>R$ 2.450,00</strong><span> de R$ 5.000,00</span></p><div class="progress-track" role="progressbar" aria-label="Meta para viagem" aria-valuemin="0" aria-valuemax="5000" aria-valuenow="2450" aria-valuetext="R$ 2.450 de R$ 5.000, 49% da meta"><div class="progress-fill progress-travel"></div></div><p class="goal-remaining">Faltam <strong>R$ 2.550,00</strong> para fazer as malas.</p></section>
+              <section class="goal-item" aria-labelledby="laptop-title"><div class="goal-top"><span class="goal-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-laptop"/></svg></span><span class="goal-percentage goal-green">30<span>%</span></span></div><h3 id="laptop-title">Novo notebook</h3><p class="goal-description">Um impulso para novas ideias.</p><p class="goal-amount"><strong>R$ 1.200,00</strong><span> de R$ 4.000,00</span></p><div class="progress-track" role="progressbar" aria-label="Meta para novo notebook" aria-valuemin="0" aria-valuemax="4000" aria-valuenow="1200" aria-valuetext="R$ 1.200 de R$ 4.000, 30% da meta"><div class="progress-fill progress-laptop"></div></div><p class="goal-remaining">Faltam <strong>R$ 2.800,00</strong> para o próximo upgrade.</p></section>
+            </div>
+          </article>
+
+          <!-- 06 · Movimentações detalhadas -->
+          <article class="card transactions-card" id="transacoes" aria-labelledby="transactions-title">
+            <header class="card-header"><div class="card-title-group"><span class="section-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-swap"/></svg></span><div><h2 id="transactions-title">Últimas movimentações</h2><p class="card-subtitle">Os detalhes que fazem a diferença no seu mês.</p></div></div><span class="subtle-tag">6 de 24 transações</span></header>
+            <div class="table-scroll" role="region" aria-label="Transações recentes, role horizontalmente para ver todas as colunas" tabindex="0">
+              <table>
+                <caption class="sr-only">Seis movimentações de novembro de 2026. Valores negativos são despesas e valores positivos são receitas.</caption>
+                <thead><tr><th scope="col">Descrição</th><th scope="col">Categoria</th><th scope="col">Data</th><th scope="col">Conta</th><th scope="col">Status</th><th scope="col" class="amount-column">Valor</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row"><span class="transaction-description"><span class="item-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-food"/></svg></span><span>Supermercado<small>Compras da semana</small></span></span></th><td><span class="category-tag">Alimentação</span></td><td><time datetime="2026-11-10">10 nov, 2026</time></td><td><span class="account-dot account-purple" aria-hidden="true"></span>Nubank</td><td><span class="badge badge-success">Pago</span></td><td class="amount-column expense-amount">− R$ 325,60</td></tr>
+                  <tr><th scope="row"><span class="transaction-description"><span class="item-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><span>Internet<small>Plano residencial</small></span></span></th><td><span class="category-tag">Moradia</span></td><td><time datetime="2026-11-11">11 nov, 2026</time></td><td><span class="account-dot account-orange" aria-hidden="true"></span>Itaú</td><td><span class="badge badge-danger">Vence hoje</span></td><td class="amount-column expense-amount">− R$ 119,90</td></tr>
+                  <tr><th scope="row"><span class="transaction-description"><span class="item-icon tone-yellow"><svg class="icon" aria-hidden="true"><use href="#i-coffee"/></svg></span><span>Café com amigos<small>Uma pausa no dia</small></span></span></th><td><span class="category-tag">Lazer</span></td><td><time datetime="2026-11-10">10 nov, 2026</time></td><td><span class="account-dot account-purple" aria-hidden="true"></span>Nubank</td><td><span class="badge badge-success">Pago</span></td><td class="amount-column expense-amount">− R$ 36,00</td></tr>
+                  <tr><th scope="row"><span class="transaction-description"><span class="item-icon tone-purple"><svg class="icon" aria-hidden="true"><use href="#i-card"/></svg></span><span>Streaming<small>Assinatura mensal</small></span></span></th><td><span class="category-tag">Outros</span></td><td><time datetime="2026-11-09">09 nov, 2026</time></td><td><span class="account-dot account-blue" aria-hidden="true"></span>Cartão Visa</td><td><span class="badge badge-success">Pago</span></td><td class="amount-column expense-amount">− R$ 55,90</td></tr>
+                  <tr><th scope="row"><span class="transaction-description"><span class="item-icon tone-red"><svg class="icon" aria-hidden="true"><use href="#i-car"/></svg></span><span>Combustível<small>Abastecimento</small></span></span></th><td><span class="category-tag">Transporte</span></td><td><time datetime="2026-11-08">08 nov, 2026</time></td><td><span class="account-dot account-blue" aria-hidden="true"></span>Cartão Visa</td><td><span class="badge badge-success">Pago</span></td><td class="amount-column expense-amount">− R$ 180,00</td></tr>
+                  <tr><th scope="row"><span class="transaction-description"><span class="item-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-income"/></svg></span><span>Salário<small>Seu trabalho, suas conquistas</small></span></span></th><td><span class="category-tag">Receitas</span></td><td><time datetime="2026-11-05">05 nov, 2026</time></td><td><span class="account-dot account-orange" aria-hidden="true"></span>Itaú</td><td><span class="badge badge-success">Recebido</span></td><td class="amount-column positive">+ R$ 8.000,00</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="table-note"><svg class="icon icon-small" aria-hidden="true"><use href="#i-lock"/></svg>Clareza em cada detalhe. Controle em cada escolha.</p>
+          </article>
         </div>
+        <details class="support-panel" id="suporte"><summary><span><svg class="icon icon-small" aria-hidden="true"><use href="#i-help"/></svg>Precisa de uma mão com seu planejamento?</span><svg class="icon icon-small" aria-hidden="true"><use href="#i-down"/></svg></summary><div><h2>Um pouco de clareza vai longe.</h2><p>O saldo total considera seu saldo anterior e o resultado do mês. Acompanhe os vencimentos na agenda, use os orçamentos para distribuir seus gastos e reserve uma parte da renda para suas metas.</p><p>As informações deste painel são ilustrativas. Os valores e as datas representam um cenário de novembro de 2026.</p></div></details>
+        <footer class="page-footer"><p><strong>finora.</strong><span>Mais clareza. Mais possibilidades.</span></p><span>Dados demonstrativos <span aria-hidden="true">·</span> Novembro de 2026</span></footer>
       </main>
     </div>
   </body>
