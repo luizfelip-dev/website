@@ -1,4 +1,4 @@
-# Finora — Controle Financeiro
+# Nivela — Controle Financeiro
 
 Dashboard financeiro desenvolvido por Luiz Felipe com **HTML5 e CSS3**, sem JavaScript, frameworks ou bibliotecas de ícones. Este repositório contém a Etapa 1: uma interface estática e responsiva, com dados demonstrativos de novembro de 2026.
 
