@@ -91,8 +91,9 @@
         </div>
         <header class="page-header">
           <div><p class="eyebrow">CADA ESCOLHA CONTA</p><h1>Meu painel financeiro<span class="heading-dot">.</span></h1><p class="page-subtitle">Tudo em um só lugar para você ir mais longe.</p></div>
-          <div class="header-actions"><div class="month-label"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><time datetime="2026-11">Novembro de 2026</time></div><a class="button button-primary" href="#transacoes">Ver transações<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          <div class="header-actions"><div class="month-label"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><time datetime="2026-11">Novembro de 2026</time></div><button class="button button-primary" type="button" id="new-transaction">+ Nova transação</button><a class="button button-secondary" href="#transacoes">Ver transações<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
         </header>
+        <p class="action-feedback" role="status" data-transaction-feedback hidden></p>
         <div class="dashboard-grid">
           <!-- 01 · Resumo mensal -->
           <article class="card summary-card" aria-labelledby="summary-title">
@@ -210,6 +211,30 @@
         <footer class="page-footer"><p><strong>Nivela</strong><span>Mais clareza. Mais possibilidades.</span></p><span>Dados demonstrativos <span aria-hidden="true">·</span> Novembro de 2026</span></footer>
       </main>
     </div>
+    <dialog class="app-dialog" id="transaction-dialog" aria-labelledby="transaction-dialog-title" aria-describedby="transaction-dialog-description">
+      <header class="dialog-header"><div><h2 id="transaction-dialog-title">Nova transação</h2><p id="transaction-dialog-description">Organize cada movimento do seu dinheiro.</p></div><button class="dialog-close" type="button" data-close-dialog aria-label="Fechar nova transação">×</button></header>
+      <form id="transaction-form">
+        <fieldset class="transaction-types"><legend>Tipo de movimentação</legend><div class="type-options">
+          <label class="type-option"><input type="radio" name="type" value="income" required><span>Receita</span></label>
+          <label class="type-option"><input type="radio" name="type" value="expense" checked><span>Despesa</span></label>
+          <label class="type-option"><input type="radio" name="type" value="transfer"><span>Transferência</span></label>
+        </div></fieldset>
+        <div class="form-grid">
+          <div class="form-field field-full"><label for="transaction-description">Descrição</label><input id="transaction-description" name="description" type="text" maxlength="120" pattern=".*\S.*" placeholder="Ex.: compras do mercado" required></div>
+          <div class="form-field"><label for="transaction-amount">Valor total (R$)</label><input id="transaction-amount" name="amount" type="number" min="0.01" max="999999999.99" step="0.01" inputmode="decimal" placeholder="0,00" required></div>
+          <div class="form-field"><label for="transaction-date">Data</label><input id="transaction-date" name="date" type="date" min="1900-01-01" max="2099-12-31" required></div>
+          <div class="form-field field-full"><label for="transaction-category">Categoria</label><select id="transaction-category" name="category" required><option value="">Selecione uma categoria</option><option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Lazer</option><option>Serviços</option><option>Outros</option></select></div>
+        </div>
+        <div class="transaction-options">
+          <label class="checkbox-option"><input type="checkbox" name="recurring" id="transaction-recurring">Repetir mensalmente (recorrência)</label>
+          <label class="checkbox-option"><input type="checkbox" name="installments" id="transaction-installments">Compra parcelada</label>
+          <p class="form-help" id="schedule-help">Você pode repetir o lançamento ou dividir uma compra em parcelas.</p>
+          <div class="form-field" id="installment-field" hidden><label for="installment-count">Número de parcelas</label><input id="installment-count" name="installmentCount" type="number" min="2" max="24" step="1" value="2" disabled></div>
+        </div>
+        <p class="form-error" id="transaction-error" role="alert" hidden></p>
+        <footer class="dialog-actions"><button class="button button-secondary" type="button" data-close-dialog>Cancelar</button><button class="button button-primary" type="submit">Salvar transação</button></footer>
+      </form>
+    </dialog>
     <script src="assets/js/app.js"></script>
   </body>
 </html>
