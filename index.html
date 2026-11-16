@@ -61,7 +61,7 @@
           <ul>
             <li><a class="nav-link" href="#planejamento"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg>Planejamento &amp; Metas</a></li>
             <li><a class="nav-link" href="#relatorios"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>Relatórios</a></li>
-            <li><a class="nav-link" href="#suporte"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg>Suporte</a></li>
+            <li><a class="nav-link" href="#suporte" data-open-support><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg>Suporte</a></li>
           </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -207,7 +207,7 @@
             <p class="table-note"><svg class="icon icon-small" aria-hidden="true"><use href="#i-lock"/></svg>Clareza em cada detalhe. Controle em cada escolha.</p>
           </article>
         </div>
-        <details class="support-panel" id="suporte"><summary><span><svg class="icon icon-small" aria-hidden="true"><use href="#i-help"/></svg>Precisa de uma mão com seu planejamento?</span><svg class="icon icon-small" aria-hidden="true"><use href="#i-down"/></svg></summary><div><h2>Um pouco de clareza vai longe.</h2><p>O saldo total considera seu saldo anterior e o resultado do mês. Acompanhe os vencimentos na agenda, use os orçamentos para distribuir seus gastos e reserve uma parte da renda para suas metas.</p><p>As informações deste painel são ilustrativas. Os valores e as datas representam um cenário de novembro de 2026.</p></div></details>
+        <details class="support-panel" id="suporte"><summary><span><svg class="icon icon-small" aria-hidden="true"><use href="#i-help"/></svg>Precisa de uma mão com seu planejamento?</span><svg class="icon icon-small" aria-hidden="true"><use href="#i-down"/></svg></summary><div><h2>Um pouco de clareza vai longe.</h2><p>O saldo total considera seu saldo anterior e o resultado do mês. Acompanhe os vencimentos na agenda, use os orçamentos para distribuir seus gastos e reserve uma parte da renda para suas metas.</p><p>As informações deste painel são ilustrativas. Os valores e as datas representam um cenário de novembro de 2026.</p><button class="button button-secondary support-button" type="button" data-open-support>Falar com o suporte</button></div></details>
         <footer class="page-footer"><p><strong>Nivela</strong><span>Mais clareza. Mais possibilidades.</span></p><span>Dados demonstrativos <span aria-hidden="true">·</span> Novembro de 2026</span></footer>
       </main>
     </div>
@@ -234,6 +234,20 @@
         <p class="form-error" id="transaction-error" role="alert" hidden></p>
         <footer class="dialog-actions"><button class="button button-secondary" type="button" data-close-dialog>Cancelar</button><button class="button button-primary" type="submit">Salvar transação</button></footer>
       </form>
+    </dialog>
+    <dialog class="app-dialog" id="support-dialog" aria-labelledby="support-dialog-title" aria-describedby="support-dialog-description">
+      <header class="dialog-header"><div><h2 id="support-dialog-title">Como podemos ajudar?</h2><p id="support-dialog-description">Conte um pouco mais para a gente.</p></div><button class="dialog-close" type="button" data-close-dialog aria-label="Fechar suporte">×</button></header>
+      <form id="support-form">
+        <div class="form-grid">
+          <div class="form-field"><label for="support-name">Nome</label><input id="support-name" name="name" type="text" autocomplete="name" minlength="2" maxlength="80" required></div>
+          <div class="form-field"><label for="support-email">E-mail</label><input id="support-email" name="email" type="email" autocomplete="email" maxlength="150" required></div>
+          <div class="form-field field-full"><label for="support-subject">Assunto</label><select id="support-subject" name="subject" required><option value="">Selecione o assunto</option><option>Transações</option><option>Orçamentos e metas</option><option>Dúvidas sobre o painel</option><option>Sugestões</option><option>Outros</option></select></div>
+          <div class="form-field field-full"><label for="support-message">Mensagem</label><textarea id="support-message" name="message" minlength="10" maxlength="2000" placeholder="Escreva sua mensagem" required></textarea></div>
+        </div>
+        <p class="form-help support-note">A confirmação de contato fica registrada apenas nesta sessão do navegador.</p>
+        <footer class="dialog-actions"><button class="button button-secondary" type="button" data-close-dialog>Cancelar</button><button class="button button-primary" type="submit">Enviar mensagem</button></footer>
+      </form>
+      <div class="support-confirmation" id="support-confirmation" role="status" tabindex="-1" hidden><span class="section-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><h3>Mensagem registrada nesta sessão</h3><p></p><button class="button button-primary" type="button" data-close-dialog>Concluir</button></div>
     </dialog>
     <script src="assets/js/app.js"></script>
   </body>

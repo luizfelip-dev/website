@@ -1136,7 +1136,7 @@ td.empty-state { padding: 28px 12px; text-align: center; white-space: normal; }
 }
 
 .stat-balance dd.negative:not(.stat-note) { color: var(--danger-text); }
-.stat.long-value dd:not(.stat-note) { font-size: clamp(13px, 1.45vw, 22px); letter-spacing: -0.5px; }
+.stat.long-value dd:not(.stat-note) { font-size: clamp(12.5px, 1.45vw, 22px); letter-spacing: -0.5px; }
 .budget-label { flex-wrap: wrap; }
 .progress-fill { transition: width 260ms ease, background-color 180ms ease; }
 .budget-label > span { padding: 2px 5px; border-radius: 5px; transition: background-color 180ms ease, color 180ms ease; }
@@ -1147,6 +1147,29 @@ td.empty-state { padding: 28px 12px; text-align: center; white-space: normal; }
 .budget-item[data-budget-status="warning"] .budget-label > span,
 .budget-item[data-budget-status="danger"] .budget-label > span { color: var(--text-primary); }
 
+.modal-open { overflow: hidden; }
+.app-dialog[open] { animation: dialog-enter 180ms ease-out; }
+.app-dialog[open]::backdrop { animation: backdrop-enter 180ms ease-out; }
+.dialog-close, .button { transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease; }
+.button:active { box-shadow: none; }
+.support-button { margin-top: 14px; }
+.support-note { margin-top: 18px; }
+.support-confirmation { padding: 15px 0; text-align: center; }
+.support-confirmation > .section-icon { width: 42px; height: 42px; margin-bottom: 15px; }
+.support-confirmation h3 { margin-bottom: 10px; font-size: 17px; }
+.support-confirmation p { margin-bottom: 24px; color: var(--text-secondary); font-size: 12px; line-height: 1.8; }
+.support-confirmation .button { font-size: 12px; }
+
+@keyframes dialog-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -1154,5 +1177,6 @@ td.empty-state { padding: 28px 12px; text-align: center; white-space: normal; }
 
   *, *::before, *::after {
     transition: none !important;
+    animation: none !important;
   }
 }

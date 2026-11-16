@@ -9,6 +9,7 @@
   const transactionDialog = document.querySelector("#transaction-dialog");
   const transactionForm = document.querySelector("#transaction-form");
   const storageKey = "nivela.transactions.v1";
+  const dialogOpeners = new WeakMap();
   const categories = ["Moradia", "Alimentação", "Transporte", "Lazer", "Serviços", "Outros"];
   const summaryValues = [...document.querySelectorAll(".summary-stats .stat dd:not(.stat-note)")];
   const summaryBase = {
@@ -250,10 +251,7 @@
 
   function initTransactionForm() {
     transactionForm.elements.date.value = referenceDate;
-    document.querySelector("#new-transaction").addEventListener("click", () => transactionDialog.showModal());
-    transactionDialog.querySelectorAll("[data-close-dialog]").forEach((button) => {
-      button.addEventListener("click", () => transactionDialog.close());
-    });
+    document.querySelector("#new-transaction").addEventListener("click", () => openDialog(transactionDialog));
     transactionForm.addEventListener("change", updateScheduleOptions);
     transactionForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -339,6 +337,12 @@
     donut.style.background = totalExpenses ? `conic-gradient(${stops.join(", ")})` : "#E8EDF4";
     setMoney(donut.querySelector("strong"), totalExpenses, "small");
     donut.setAttribute("aria-label", `Despesas de ${formatMoney(totalExpenses)}. ${Object.entries(totals).map(([name, cents]) => `${name}: ${formatMoney(cents)}`).join(". ")}`);
+    const largest = Object.entries(totals).sort((a, b) => b[1] - a[1])[0][0];
+    const note = document.querySelector(".category-figure .figure-footnote");
+    const categoryDot = document.createElement("span");
+    categoryDot.className = `legend-dot ${["dot-blue", "dot-green", "dot-yellow", "dot-purple", "dot-slate"][Object.keys(totals).indexOf(largest)]}`;
+    categoryDot.setAttribute("aria-hidden", "true");
+    note.replaceChildren(categoryDot, document.createTextNode(`${largest} é sua maior despesa.`));
 
     const balances = [720000, 810000, 745000, 942000, 930000, balance];
     const ceiling = Math.max(1500000, Math.ceil(balance / 500000) * 500000);
@@ -365,7 +369,8 @@
         .reduce((total, item) => total + item.amountCents, 0);
       const current = spent + additions;
       const track = element.querySelector("[role=progressbar]");
-      track.setAttribute("aria-valuenow", String(current / 100));
+      track.dataset.spentCents = String(current);
+      track.setAttribute("aria-valuenow", String(Math.min(current, limit) / 100));
       const limitLabel = document.createElement("span");
       limitLabel.textContent = ` / ${formatMoney(limit)}`;
       element.querySelector(".budget-amount").replaceChildren(document.createTextNode(formatMoney(current)), limitLabel);
@@ -382,8 +387,8 @@
   function updateBudgetAlerts() {
     document.querySelectorAll(".budget-item").forEach((item) => {
       const track = item.querySelector("[role=progressbar]");
-      const current = Number(track.getAttribute("aria-valuenow"));
-      const limit = Number(track.getAttribute("aria-valuemax"));
+      const current = Number(track.dataset.spentCents);
+      const limit = Math.round(Number(track.getAttribute("aria-valuemax")) * 100);
       const percent = limit > 0 ? current / limit * 100 : 0;
       const state = percent >= 100 ? "danger" : percent >= 80 ? "warning" : "normal";
       item.dataset.budgetStatus = state;
@@ -391,12 +396,85 @@
       const suffix = state === "danger" ? " · Limite atingido" : state === "warning" ? " · Atenção" : "";
       const label = `${Math.floor(percent * 10) / 10}%${suffix}`.replace(".", ",");
       item.querySelector(".budget-label > span").textContent = label;
-      track.setAttribute("aria-valuetext", `${formatMoney(Math.round(current * 100))} de ${formatMoney(Math.round(limit * 100))}, ${label}`);
+      track.setAttribute("aria-valuetext", `${formatMoney(current)} de ${formatMoney(limit)}, ${label}`);
+    });
+  }
+
+  function openDialog(dialog) {
+    if (dialog.open) return;
+    const other = document.querySelector("dialog[open]");
+    if (other) other.close();
+    dialogOpeners.set(dialog, document.activeElement);
+    dialog.showModal();
+    document.body.classList.add("modal-open");
+  }
+
+  function initDialogs() {
+    document.querySelectorAll(".app-dialog").forEach((dialog) => {
+      let startedOutside = false;
+      const outside = (event) => {
+        const rect = dialog.getBoundingClientRect();
+        return event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+      };
+      dialog.addEventListener("pointerdown", (event) => {
+        startedOutside = event.target === dialog && outside(event);
+      });
+      dialog.addEventListener("click", (event) => {
+        if (startedOutside && event.target === dialog && outside(event)) dialog.close();
+        startedOutside = false;
+      });
+      dialog.addEventListener("close", () => {
+        if (!document.querySelector("dialog[open]")) {
+          document.body.classList.remove("modal-open");
+          const opener = dialogOpeners.get(dialog);
+          if (opener?.isConnected) opener.focus();
+        }
+      });
+      dialog.querySelectorAll("[data-close-dialog]").forEach((button) => {
+        button.addEventListener("click", () => dialog.close());
+      });
+    });
+  }
+
+  function initSupportForm() {
+    const dialog = document.querySelector("#support-dialog");
+    const form = document.querySelector("#support-form");
+    const confirmation = document.querySelector("#support-confirmation");
+    document.querySelectorAll("[data-open-support]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        form.hidden = false;
+        confirmation.hidden = true;
+        openDialog(dialog);
+      });
+    });
+
+    function validateText(field) {
+      const valid = field.value.trim().length >= field.minLength;
+      field.setCustomValidity(valid ? "" : `Escreva pelo menos ${field.minLength} caracteres.`);
+    }
+
+    form.addEventListener("input", (event) => {
+      if (["name", "message"].includes(event.target.name)) validateText(event.target);
+    });
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      validateText(form.elements.namedItem("name"));
+      validateText(form.elements.message);
+      if (!form.reportValidity()) return;
+      const name = form.elements.namedItem("name").value.trim();
+      confirmation.querySelector("p").textContent = `Obrigado pelo contato, ${name}! Seus dados foram validados e a confirmação foi registrada nesta sessão.`;
+      form.reset();
+      form.hidden = true;
+      confirmation.hidden = false;
+      confirmation.focus();
     });
   }
 
   initBillFilters();
   initTransactionFilters();
+  initDialogs();
   initTransactionForm();
+  initSupportForm();
   updateSummary();
 })();
