@@ -1081,6 +1081,20 @@ tbody .amount-column { font-size: 11px; font-weight: 550; font-variant-numeric: 
 .due-day.is-active i { background: #BFDBFE; }
 .empty-state { padding: 22px 8px; color: var(--text-secondary); text-align: center; font-size: 11px; }
 
+.transaction-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.filter-tabs { display: inline-flex; gap: 3px; padding: 3px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-app); }
+.filter-tab { min-height: 30px; padding: 6px 12px; border: 0; border-radius: 5px; background: transparent; color: var(--text-secondary); font: inherit; font-size: 10px; cursor: pointer; transition: background-color 180ms ease, color 180ms ease, box-shadow 180ms ease; }
+.filter-tab:hover { background: var(--brand-light); color: var(--brand); }
+.filter-tab.is-active { background: var(--brand); color: white; box-shadow: 0 2px 4px rgb(37 99 235 / 12%); }
+.search-field { display: block; width: min(100%, 260px); }
+.search-field input { width: 100%; min-height: 36px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 11px; }
+.search-field input::placeholder { color: var(--text-secondary); }
+td.empty-state { padding: 28px 12px; text-align: center; white-space: normal; }
+
+@media (max-width: 480px) {
+  .search-field { width: 100%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

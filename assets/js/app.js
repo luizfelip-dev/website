@@ -3,6 +3,7 @@
 
   const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
   const billsCard = document.querySelector("#contas");
+  const transactionsCard = document.querySelector("#transacoes");
 
   function formatMoney(cents) {
     return currency.format(cents / 100);
@@ -55,5 +56,41 @@
     filterBills("all");
   }
 
+  function normalizeText(value) {
+    return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR").trim();
+  }
+
+  function filterTransactions() {
+    const type = transactionsCard.querySelector(".filter-tab.is-active").dataset.transactionType;
+    const search = normalizeText(document.querySelector("#transaction-search").value);
+    const rows = [...transactionsCard.querySelectorAll("tbody tr[data-type]")];
+    let visible = 0;
+
+    rows.forEach((row) => {
+      const matchesType = type === "all" || row.dataset.type === type;
+      const text = normalizeText(`${row.dataset.description} ${row.dataset.category}`);
+      row.hidden = !matchesType || !text.includes(search);
+      if (!row.hidden) visible += 1;
+    });
+
+    const added = rows.filter((row) => row.dataset.added === "true").length;
+    transactionsCard.querySelector(".card-header > .subtle-tag").textContent = `${visible} de ${24 + added} transações`;
+    transactionsCard.querySelector("[data-transactions-empty]").hidden = visible > 0;
+    transactionsCard.querySelector("[data-filter-status]").textContent = `${visible} movimentações encontradas.`;
+  }
+
+  function initTransactionFilters() {
+    const buttons = [...transactionsCard.querySelectorAll("[data-transaction-type]")];
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        selectFilter(buttons, button);
+        filterTransactions();
+      });
+    });
+    document.querySelector("#transaction-search").addEventListener("input", filterTransactions);
+    filterTransactions();
+  }
+
   initBillFilters();
+  initTransactionFilters();
 })();
