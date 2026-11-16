@@ -17,6 +17,12 @@
     opening: readMoney(summaryValues[0].textContent) - readMoney(summaryValues[3].textContent),
   };
   const categoryBase = { Moradia: 213000, Alimentação: 132980, Transporte: 79790, Lazer: 53190, Outros: 52950 };
+  const budgetBase = [...document.querySelectorAll(".budget-item")].map((element) => ({
+    element,
+    category: element.querySelector("h3").textContent.trim(),
+    spent: Math.round(Number(element.querySelector("[role=progressbar]").getAttribute("aria-valuenow")) * 100),
+    limit: Math.round(Number(element.querySelector("[role=progressbar]").getAttribute("aria-valuemax")) * 100),
+  }));
   let addedTransactions = loadTransactions();
 
   function formatMoney(cents) {
@@ -280,7 +286,10 @@
     }, { income: summaryBase.income, expense: summaryBase.expense });
     const net = totals.income - totals.expense;
     const balance = summaryBase.opening + net;
-    [balance, totals.income, totals.expense, net].forEach((value, index) => setMoney(summaryValues[index], value));
+    [balance, totals.income, totals.expense, net].forEach((value, index) => {
+      setMoney(summaryValues[index], value);
+      summaryValues[index].parentElement.classList.toggle("long-value", Math.abs(value) >= 10000000);
+    });
     summaryValues[0].classList.toggle("negative", balance < 0);
     summaryValues[3].classList.toggle("positive", net >= 0);
     summaryValues[3].classList.toggle("negative", net < 0);
@@ -306,6 +315,7 @@
     const insight = document.querySelector(".summary-insight p");
     insight.textContent = net < 0 ? "Hora de revisar os planos: suas despesas superaram as receitas." : net === 0 ? "Receitas e despesas estão equilibradas neste mês." : "Bom ritmo! Suas receitas superaram as despesas neste mês.";
     updateCharts(totals.expense, balance);
+    updateBudgets();
   }
 
   function updateCharts(totalExpenses, balance) {
@@ -338,7 +348,7 @@
     document.querySelectorAll(".chart-scale span").forEach((span, index) => {
       span.textContent = index === 3 ? "0" : `${(ceiling * (3 - index) / 3 / 100000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
     });
-    document.querySelector(".bar-value").textContent = formatMoney(balance);
+    document.querySelector(".bar-value").textContent = new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(balance / 100);
     document.querySelector(".bar-chart").setAttribute("aria-label", `Saldos de junho a novembro: ${balances.map(formatMoney).join("; ")}.`);
     const change = (balance - summaryBase.opening) / summaryBase.opening * 100;
     const footnote = document.querySelector(".balance-footnote");
@@ -346,6 +356,43 @@
     percent.className = change >= 0 ? "positive" : "negative";
     percent.textContent = `${change < 0 ? "−" : "+"}${Math.abs(change).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
     footnote.replaceChildren(percent, document.createTextNode(" em relação a outubro"));
+  }
+
+  function updateBudgets() {
+    let remaining = 0;
+    budgetBase.forEach(({ element, category, spent, limit }) => {
+      const additions = monthlyTransactions().filter((item) => item.type === "expense" && item.category === category)
+        .reduce((total, item) => total + item.amountCents, 0);
+      const current = spent + additions;
+      const track = element.querySelector("[role=progressbar]");
+      track.setAttribute("aria-valuenow", String(current / 100));
+      const limitLabel = document.createElement("span");
+      limitLabel.textContent = ` / ${formatMoney(limit)}`;
+      element.querySelector(".budget-amount").replaceChildren(document.createTextNode(formatMoney(current)), limitLabel);
+      remaining += limit - current;
+    });
+    updateBudgetAlerts();
+    const footer = document.querySelector(".budget-footer p");
+    const amount = document.createElement("strong");
+    amount.textContent = formatMoney(Math.abs(remaining));
+    footer.replaceChildren(document.createTextNode(remaining >= 0 ? "Você ainda tem " : "Você ultrapassou seus orçamentos em "), amount,
+      document.createTextNode(remaining >= 0 ? " disponíveis nos seus orçamentos." : ". Vale revisar seu planejamento."));
+  }
+
+  function updateBudgetAlerts() {
+    document.querySelectorAll(".budget-item").forEach((item) => {
+      const track = item.querySelector("[role=progressbar]");
+      const current = Number(track.getAttribute("aria-valuenow"));
+      const limit = Number(track.getAttribute("aria-valuemax"));
+      const percent = limit > 0 ? current / limit * 100 : 0;
+      const state = percent >= 100 ? "danger" : percent >= 80 ? "warning" : "normal";
+      item.dataset.budgetStatus = state;
+      item.querySelector(".progress-fill").style.width = `${Math.min(100, Math.max(0, percent))}%`;
+      const suffix = state === "danger" ? " · Limite atingido" : state === "warning" ? " · Atenção" : "";
+      const label = `${Math.floor(percent * 10) / 10}%${suffix}`.replace(".", ",");
+      item.querySelector(".budget-label > span").textContent = label;
+      track.setAttribute("aria-valuetext", `${formatMoney(Math.round(current * 100))} de ${formatMoney(Math.round(limit * 100))}, ${label}`);
+    });
   }
 
   initBillFilters();
