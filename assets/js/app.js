@@ -10,15 +10,26 @@
   const transactionForm = document.querySelector("#transaction-form");
   const storageKey = "nivela.transactions.v1";
   const categories = ["Moradia", "Alimentação", "Transporte", "Lazer", "Serviços", "Outros"];
+  const summaryValues = [...document.querySelectorAll(".summary-stats .stat dd:not(.stat-note)")];
+  const summaryBase = {
+    income: readMoney(summaryValues[1].textContent),
+    expense: readMoney(summaryValues[2].textContent),
+    opening: readMoney(summaryValues[0].textContent) - readMoney(summaryValues[3].textContent),
+  };
+  const categoryBase = { Moradia: 213000, Alimentação: 132980, Transporte: 79790, Lazer: 53190, Outros: 52950 };
   let addedTransactions = loadTransactions();
 
   function formatMoney(cents) {
     return currency.format(cents / 100);
   }
 
-  function setMoney(element, cents) {
+  function readMoney(value) {
+    return Number(value.replace(/[^\d-]/g, ""));
+  }
+
+  function setMoney(element, cents, fractionTag = "span") {
     const [whole, fraction] = formatMoney(cents).split(",");
-    const decimals = document.createElement("span");
+    const decimals = document.createElement(fractionTag);
     decimals.textContent = `,${fraction}`;
     element.replaceChildren(document.createTextNode(whole), decimals);
   }
@@ -204,7 +215,7 @@
 
   function createTransactions() {
     const fields = transactionForm.elements;
-    const [whole, fraction = ""] = fields.amount.value.split(".");
+    const [whole, fraction = ""] = fields.amount.valueAsNumber.toFixed(2).split(".");
     const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
     const installments = fields.installments.checked ? Number(fields.installmentCount.value) : 1;
     const error = document.querySelector("#transaction-error");
@@ -249,6 +260,7 @@
       const buttons = [...transactionsCard.querySelectorAll("[data-transaction-type]")];
       selectFilter(buttons, buttons[0]);
       renderTransactions();
+      updateSummary();
       const inMonth = entries.filter((item) => item.date.slice(0, 7) === activeMonth).length;
       notify(`${entries.length === 1 ? "Transação registrada" : `${entries.length} lançamentos registrados`}. ${inMonth} neste mês.${saved ? "" : " Os dados ficarão disponíveis apenas nesta sessão."}`);
       transactionForm.reset();
@@ -260,7 +272,84 @@
     renderTransactions();
   }
 
+  function updateSummary() {
+    const totals = monthlyTransactions().reduce((sum, item) => {
+      if (item.type === "income") sum.income += item.amountCents;
+      if (item.type === "expense") sum.expense += item.amountCents;
+      return sum;
+    }, { income: summaryBase.income, expense: summaryBase.expense });
+    const net = totals.income - totals.expense;
+    const balance = summaryBase.opening + net;
+    [balance, totals.income, totals.expense, net].forEach((value, index) => setMoney(summaryValues[index], value));
+    summaryValues[0].classList.toggle("negative", balance < 0);
+    summaryValues[3].classList.toggle("positive", net >= 0);
+    summaryValues[3].classList.toggle("negative", net < 0);
+
+    const stats = [...document.querySelectorAll(".summary-stats .stat")];
+    [summaryBase.opening, 800000, 578800].forEach((previous, index) => {
+      const value = [balance, totals.income, totals.expense][index];
+      const difference = (value - previous) / previous * 100;
+      const note = stats[index].querySelector(".stat-note > span:first-child");
+      note.textContent = `${difference < 0 ? "−" : "+"}${Math.abs(difference).toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%`;
+      const positive = index === 2 ? difference <= 0 : difference >= 0;
+      note.classList.toggle("positive", positive);
+      note.classList.toggle("negative", !positive);
+    });
+    stats[3].querySelector(".stat-note > span:last-child").textContent = totals.income
+      ? `${(net / totals.income * 100).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% da sua receita` : "Sem receitas neste mês";
+    const badge = document.querySelector(".summary-header > .badge");
+    badge.className = `badge ${net < 0 ? "badge-danger" : net === 0 ? "badge-neutral" : "badge-success"}`;
+    const dot = document.createElement("span");
+    dot.className = "status-dot";
+    dot.setAttribute("aria-hidden", "true");
+    badge.replaceChildren(dot, document.createTextNode(net < 0 ? "Mês negativo" : net === 0 ? "Mês equilibrado" : "Mês positivo"));
+    const insight = document.querySelector(".summary-insight p");
+    insight.textContent = net < 0 ? "Hora de revisar os planos: suas despesas superaram as receitas." : net === 0 ? "Receitas e despesas estão equilibradas neste mês." : "Bom ritmo! Suas receitas superaram as despesas neste mês.";
+    updateCharts(totals.expense, balance);
+  }
+
+  function updateCharts(totalExpenses, balance) {
+    const totals = { ...categoryBase };
+    monthlyTransactions().filter((item) => item.type === "expense").forEach((item) => {
+      const category = item.category in totals ? item.category : "Outros";
+      totals[category] += item.amountCents;
+    });
+    const colors = ["var(--brand)", "var(--success)", "var(--warning)", "var(--purple)", "#94A3B8"];
+    let start = 0;
+    const stops = Object.entries(totals).map(([category, cents], index) => {
+      const share = totalExpenses ? cents / totalExpenses * 100 : 0;
+      const end = start + share;
+      const gap = Math.min(0.6, share / 10);
+      const stop = `${colors[index]} ${start}% ${end - gap}%, white ${end - gap}% ${end}%`;
+      start = end;
+      document.querySelectorAll(".chart-legend strong")[index].textContent = `${Math.round(share)}%`;
+      return stop;
+    });
+    const donut = document.querySelector(".donut");
+    donut.style.background = totalExpenses ? `conic-gradient(${stops.join(", ")})` : "#E8EDF4";
+    setMoney(donut.querySelector("strong"), totalExpenses, "small");
+    donut.setAttribute("aria-label", `Despesas de ${formatMoney(totalExpenses)}. ${Object.entries(totals).map(([name, cents]) => `${name}: ${formatMoney(cents)}`).join(". ")}`);
+
+    const balances = [720000, 810000, 745000, 942000, 930000, balance];
+    const ceiling = Math.max(1500000, Math.ceil(balance / 500000) * 500000);
+    document.querySelectorAll(".bar-plot .bar").forEach((bar, index) => {
+      bar.style.height = `${Math.max(0, balances[index]) / ceiling * 100}%`;
+    });
+    document.querySelectorAll(".chart-scale span").forEach((span, index) => {
+      span.textContent = index === 3 ? "0" : `${(ceiling * (3 - index) / 3 / 100000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} mil`;
+    });
+    document.querySelector(".bar-value").textContent = formatMoney(balance);
+    document.querySelector(".bar-chart").setAttribute("aria-label", `Saldos de junho a novembro: ${balances.map(formatMoney).join("; ")}.`);
+    const change = (balance - summaryBase.opening) / summaryBase.opening * 100;
+    const footnote = document.querySelector(".balance-footnote");
+    const percent = document.createElement("span");
+    percent.className = change >= 0 ? "positive" : "negative";
+    percent.textContent = `${change < 0 ? "−" : "+"}${Math.abs(change).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
+    footnote.replaceChildren(percent, document.createTextNode(" em relação a outubro"));
+  }
+
   initBillFilters();
   initTransactionFilters();
   initTransactionForm();
+  updateSummary();
 })();

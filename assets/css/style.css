@@ -1135,6 +1135,9 @@ td.empty-state { padding: 28px 12px; text-align: center; white-space: normal; }
   .type-option span { font-size: 11px; }
 }
 
+.stat-balance dd.negative:not(.stat-note) { color: var(--danger-text); }
+.stat dd:not(.stat-note) { font-size: clamp(18px, 1.9vw, 31px); }
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
