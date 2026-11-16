@@ -1071,6 +1071,16 @@ tbody .amount-column { font-size: 11px; font-weight: 550; font-variant-numeric: 
   .analytics-card .subtle-tag, .budget-card .subtle-tag { display: none; }
 }
 
+[hidden] { display: none !important; }
+
+.due-days { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.due-day { padding: 5px 2px; background: var(--bg-card); font: inherit; cursor: pointer; transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease; }
+.due-day[data-due-date="all"] strong { font-size: 10px; }
+.due-day.is-active { border-color: var(--brand); background: var(--brand); color: white; }
+.due-day.is-active strong { color: white; }
+.due-day.is-active i { background: #BFDBFE; }
+.empty-state { padding: 22px 8px; color: var(--text-secondary); text-align: center; font-size: 11px; }
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
