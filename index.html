@@ -6,6 +6,7 @@
     <meta name="description" content="Nivela: um painel para acompanhar seu saldo, organizar despesas e planejar suas próximas conquistas.">
     <meta name="theme-color" content="#F8FAFC">
     <title>Nivela — Controle Financeiro</title>
+    <script src="assets/js/session.js"></script>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preload" href="assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -74,7 +75,7 @@
           <div class="user-profile">
             <span class="avatar" aria-hidden="true">LF</span>
             <div><strong>Luiz Felipe</strong><span>Conta pessoal</span></div>
-            <svg class="icon icon-small profile-lock" aria-label="Área pessoal" role="img"><use href="#i-lock"/></svg>
+            <button class="profile-logout icon-button" type="button" data-sign-out aria-label="Sair do Nivela"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H4v16h6M9 12h12m-4-4 4 4-4 4"/></svg></button>
           </div>
         </div>
       </aside>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Entre no Nivela e organize seu dinheiro com mais clareza.">
+    <meta name="theme-color" content="#F8FAFC">
+    <title>Entrar — Nivela Controle Financeiro</title>
+    <script src="assets/js/session.js"></script>
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preload" href="assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+  </head>
+  <body class="login-page">
+    <a class="skip-link" href="#login-content">Pular para o login</a>
+    <main class="login-main" id="login-content">
+      <header class="login-brand-header"><a class="brand" href="login.html" aria-label="Nivela, página de entrada"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>Nivela</span></a></header>
+      <div class="login-shell">
+        <section class="login-intro" aria-labelledby="intro-title">
+          <p class="eyebrow">MAIS CLAREZA. MAIS POSSIBILIDADES.</p>
+          <h2 id="intro-title">Seu dinheiro.<br>Seu próximo passo.</h2>
+          <p>Organize suas contas, acompanhe suas metas e faça escolhas que aproximam você do que importa.</p>
+          <div class="login-visual" aria-hidden="true"><div class="login-mini-card"><span>Um plano para cada conquista</span><div class="login-mini-bars"><i></i><i></i><i></i><i></i><i></i></div><strong>Pequenos passos. Grandes conquistas.</strong></div><span class="login-check">✓</span></div>
+          <ul class="login-benefits"><li>Contas organizadas em um só lugar</li><li>Orçamentos para escolhas conscientes</li><li>Metas para os seus próximos capítulos</li></ul>
+        </section>
+        <section class="login-card" aria-labelledby="login-title">
+          <p class="eyebrow">BOM TER VOCÊ POR AQUI</p>
+          <h1 id="login-title">Entre na sua conta</h1>
+          <p class="login-subtitle">Vamos cuidar dos seus próximos planos?</p>
+          <form id="login-form">
+            <div class="form-field"><label for="login-email">E-mail</label><input id="login-email" name="email" type="email" autocomplete="email" maxlength="150" placeholder="voce@exemplo.com" required></div>
+            <div class="form-field"><label for="login-password">Senha</label><div class="password-field"><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" aria-describedby="password-help" required><button type="button" id="toggle-password" aria-label="Mostrar senha" aria-controls="login-password" aria-pressed="false">Mostrar</button></div><p class="form-help" id="password-help">Use uma senha de teste com pelo menos 8 caracteres.</p></div>
+            <div class="login-options"><label class="checkbox-option"><input type="checkbox" name="remember">Manter conectado</label><a class="text-link" id="forgot-password" href="#login-feedback">Esqueci minha senha</a></div>
+            <p class="login-feedback" id="login-feedback" role="status" hidden></p>
+            <button class="button button-primary login-submit" type="submit">Entrar no Nivela <span aria-hidden="true">→</span></button>
+          </form>
+          <p class="login-disclaimer">Entrada de demonstração com validação local. Sua senha não será armazenada.</p>
+        </section>
+      </div>
+    </main>
+    <script src="assets/js/login.js"></script>
+  </body>
+</html>
