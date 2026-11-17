@@ -406,6 +406,7 @@
     if (other) other.close();
     dialogOpeners.set(dialog, document.activeElement);
     dialog.showModal();
+    document.querySelectorAll(`[aria-controls="${dialog.id}"]`).forEach((button) => button.setAttribute("aria-expanded", "true"));
     document.body.classList.add("modal-open");
   }
 
@@ -424,6 +425,7 @@
         startedOutside = false;
       });
       dialog.addEventListener("close", () => {
+        document.querySelectorAll(`[aria-controls="${dialog.id}"]`).forEach((button) => button.setAttribute("aria-expanded", "false"));
         if (!document.querySelector("dialog[open]")) {
           document.body.classList.remove("modal-open");
           const opener = dialogOpeners.get(dialog);
@@ -471,6 +473,17 @@
     });
   }
 
+  function initKeyboardNavigation() {
+    document.querySelectorAll(".main-nav a[href^='#'], .footer-nav a[href^='#']").forEach((link) => {
+      if (link.hasAttribute("data-open-support")) return;
+      const target = document.querySelector(link.getAttribute("href"));
+      if (!target) return;
+      target.tabIndex = -1;
+      link.addEventListener("click", () => target.focus({ preventScroll: true }));
+    });
+  }
+
+  initKeyboardNavigation();
   initBillFilters();
   initTransactionFilters();
   initDialogs();

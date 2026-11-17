@@ -64,7 +64,7 @@
             <li><a class="nav-link" href="#planejamento"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg>Planejamento &amp; Metas</a></li>
             <li><button class="nav-link" type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M4 9h16m-8 0v6m-4 6 4-6 4 6"/></svg>Acessibilidade</button></li>
             <li><a class="nav-link" href="#relatorios"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>Relatórios</a></li>
-            <li><a class="nav-link" href="#suporte" data-open-support><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg>Suporte</a></li>
+            <li><a class="nav-link" href="#suporte" data-open-support aria-haspopup="dialog" aria-controls="support-dialog" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg>Suporte</a></li>
           </ul>
         </nav>
         <div class="sidebar-bottom">
@@ -89,16 +89,16 @@
             <div class="quick-access" role="group" aria-label="Atalhos de acessibilidade"><button class="button button-secondary" type="button" data-font-step="-1" aria-label="Diminuir tamanho da fonte">A−</button><button class="button button-secondary" type="button" data-font-reset aria-label="Restaurar fonte padrão, 100 por cento" aria-pressed="true">A</button><button class="button button-secondary" type="button" data-font-step="1" aria-label="Aumentar tamanho da fonte">A+</button><button class="button button-secondary" type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button></div>
             <span class="today">Quarta-feira, <time datetime="2026-11-11">11 de novembro</time></span>
             <details class="notifications">
-              <summary class="icon-button" aria-label="Notificações, 2 avisos"><svg class="icon" aria-hidden="true"><use href="#i-bell"/></svg><span class="notification-dot" aria-hidden="true"></span></summary>
-              <div class="notification-panel"><strong>Seu dia na Nivela</strong><p>Internet vence hoje: <b>R$ 119,90</b>.</p><p>Seu orçamento de transporte atingiu <b>94%</b>.</p><a class="text-link" href="#contas">Conferir minhas contas <span aria-hidden="true">→</span></a></div>
+              <summary class="icon-button" aria-label="Notificações, 2 avisos" aria-controls="notifications-panel"><svg class="icon" aria-hidden="true"><use href="#i-bell"/></svg><span class="notification-dot" aria-hidden="true"></span></summary>
+              <div class="notification-panel" id="notifications-panel"><strong>Seu dia na Nivela</strong><p>Internet vence hoje: <b>R$ 119,90</b>.</p><p>Seu orçamento de transporte atingiu <b>94%</b>.</p><a class="text-link" href="#contas">Conferir minhas contas <span aria-hidden="true">→</span></a></div>
             </details>
           </div>
         </div>
         <header class="page-header">
           <div><p class="eyebrow">CADA ESCOLHA CONTA</p><h1>Meu painel financeiro<span class="heading-dot">.</span></h1><p class="page-subtitle">Tudo em um só lugar para você ir mais longe.</p></div>
-          <div class="header-actions"><div class="month-label"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><time datetime="2026-11">Novembro de 2026</time></div><button class="button button-primary" type="button" id="new-transaction">+ Nova transação</button><a class="button button-secondary" href="#transacoes">Ver transações<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          <div class="header-actions"><div class="month-label"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><time datetime="2026-11">Novembro de 2026</time></div><button class="button button-primary" type="button" id="new-transaction" aria-haspopup="dialog" aria-controls="transaction-dialog" aria-expanded="false">+ Nova transação</button><a class="button button-secondary" href="#transacoes">Ver transações<svg class="icon icon-small" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
         </header>
-        <p class="action-feedback" role="status" data-transaction-feedback hidden></p>
+        <p class="action-feedback" role="status" aria-live="polite" data-transaction-feedback hidden></p>
         <div class="dashboard-grid">
           <!-- 01 · Resumo mensal -->
           <article class="card summary-card" aria-labelledby="summary-title">
@@ -185,7 +185,7 @@
           <article class="card education-card" id="educacao" aria-labelledby="education-title" aria-roledescription="carrossel">
             <header class="card-header"><div class="card-title-group"><span class="section-icon tone-blue"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg></span><div><h2 id="education-title">Educação financeira</h2><p class="card-subtitle">Conhecimento para cuidar melhor do que é seu.</p></div></div><button class="button button-secondary carousel-pause" type="button" id="carousel-pause" aria-pressed="false">Pausar rotação</button></header>
             <p class="sr-only" id="carousel-instructions">Use as setas para a esquerda e direita para mudar de dica. A rotação pausa enquanto você lê com o mouse ou teclado.</p>
-            <div class="carousel-stage" tabindex="0" aria-label="Dicas de educação financeira" aria-describedby="carousel-instructions">
+            <div class="carousel-stage" role="group" tabindex="0" aria-label="Dicas de educação financeira" aria-describedby="carousel-instructions">
               <section class="carousel-slide" role="group" aria-roledescription="slide" aria-label="1 de 3">
                 <img src="assets/img/reserva-emergencia.svg" width="480" height="300" alt="Cofre protegido por um escudo, com moedas guardadas para imprevistos.">
                 <div class="education-copy"><span class="subtle-tag">01 · TRANQUILIDADE</span><h3>Um respiro para os imprevistos</h3><p>Comece sua reserva de emergência com o que cabe no seu mês. A constância vale mais do que esperar o momento perfeito.</p><ul><li>Estime seus gastos essenciais de um mês.</li><li>Defina uma contribuição que você consiga manter.</li><li>Guarde em uma opção de fácil acesso e baixo risco.</li></ul></div>
@@ -200,7 +200,7 @@
               </section>
             </div>
             <div class="carousel-controls"><button class="button button-secondary" type="button" data-carousel-previous aria-label="Dica anterior"><span aria-hidden="true">←</span> Anterior</button><div class="carousel-dots" role="group" aria-label="Escolher dica"><button class="carousel-dot is-active" type="button" data-carousel-index="0" aria-label="Dica 1: reserva de emergência" aria-pressed="true"></button><button class="carousel-dot" type="button" data-carousel-index="1" aria-label="Dica 2: controle do orçamento" aria-pressed="false"></button><button class="carousel-dot" type="button" data-carousel-index="2" aria-label="Dica 3: metas financeiras" aria-pressed="false"></button></div><button class="button button-secondary" type="button" data-carousel-next aria-label="Próxima dica">Próximo <span aria-hidden="true">→</span></button></div>
-            <p class="sr-only" role="status" id="carousel-status"></p>
+            <p class="sr-only" role="status" aria-live="polite" id="carousel-status"></p>
           </article>
 
           <!-- 06 · Movimentações detalhadas -->
@@ -214,7 +214,7 @@
               </div>
               <label class="search-field"><span class="sr-only">Buscar por nome ou categoria</span><input type="search" id="transaction-search" placeholder="Buscar por nome ou categoria" autocomplete="off"></label>
             </div>
-            <p class="sr-only" role="status" data-filter-status></p>
+            <p class="sr-only" role="status" aria-live="polite" data-filter-status></p>
             <div class="table-scroll" role="region" aria-label="Transações recentes, role horizontalmente para ver todas as colunas" tabindex="0">
               <table>
                 <caption class="sr-only">Movimentações de novembro de 2026. Valores negativos são despesas e valores positivos são receitas.</caption>
@@ -233,8 +233,12 @@
             <p class="table-note"><svg class="icon icon-small" aria-hidden="true"><use href="#i-lock"/></svg>Clareza em cada detalhe. Controle em cada escolha.</p>
           </article>
         </div>
-        <details class="support-panel" id="suporte"><summary><span><svg class="icon icon-small" aria-hidden="true"><use href="#i-help"/></svg>Precisa de uma mão com seu planejamento?</span><svg class="icon icon-small" aria-hidden="true"><use href="#i-down"/></svg></summary><div><h2>Um pouco de clareza vai longe.</h2><p>O saldo total considera seu saldo anterior e o resultado do mês. Acompanhe os vencimentos na agenda, use os orçamentos para distribuir seus gastos e reserve uma parte da renda para suas metas.</p><p>As informações deste painel são ilustrativas. Os valores e as datas representam um cenário de novembro de 2026.</p><button class="button button-secondary support-button" type="button" data-open-support>Falar com o suporte</button></div></details>
-        <footer class="page-footer"><p><strong>Nivela</strong><span>Mais clareza. Mais possibilidades.</span></p><span>Dados demonstrativos <span aria-hidden="true">·</span> Novembro de 2026</span></footer>
+        <details class="support-panel" id="suporte"><summary aria-controls="support-details"><span><svg class="icon icon-small" aria-hidden="true"><use href="#i-help"/></svg>Precisa de uma mão com seu planejamento?</span><svg class="icon icon-small" aria-hidden="true"><use href="#i-down"/></svg></summary><div id="support-details"><h2>Um pouco de clareza vai longe.</h2><p>O saldo total considera seu saldo anterior e o resultado do mês. Acompanhe os vencimentos na agenda, use os orçamentos para distribuir seus gastos e reserve uma parte da renda para suas metas.</p><p>As informações deste painel são ilustrativas. Os valores e as datas representam um cenário de novembro de 2026.</p><button class="button button-secondary support-button" type="button" data-open-support aria-haspopup="dialog" aria-controls="support-dialog" aria-expanded="false">Falar com o suporte</button></div></details>
+        <footer class="page-footer">
+          <div class="footer-brand"><strong>Nivela — Controle Financeiro</strong><p>Mais clareza. Mais possibilidades.</p></div>
+          <nav class="footer-nav" aria-label="Navegação do rodapé"><a href="#dashboard">Dashboard</a><button type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button><button type="button" data-open-support aria-haspopup="dialog" aria-controls="support-dialog" aria-expanded="false">Suporte</button><a href="login.html" data-sign-out>Sair</a></nav>
+          <small>© 2026 Nivela. Todos os direitos reservados.<span> Valores demonstrativos de novembro de 2026.</span></small>
+        </footer>
       </main>
     </div>
     <dialog class="app-dialog" id="transaction-dialog" aria-labelledby="transaction-dialog-title" aria-describedby="transaction-dialog-description">
@@ -273,7 +277,7 @@
         <p class="form-help support-note">A confirmação de contato fica registrada apenas nesta sessão do navegador.</p>
         <footer class="dialog-actions"><button class="button button-secondary" type="button" data-close-dialog>Cancelar</button><button class="button button-primary" type="submit">Enviar mensagem</button></footer>
       </form>
-      <div class="support-confirmation" id="support-confirmation" role="status" tabindex="-1" hidden><span class="section-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><h3>Mensagem registrada nesta sessão</h3><p></p><button class="button button-primary" type="button" data-close-dialog>Concluir</button></div>
+      <div class="support-confirmation" id="support-confirmation" role="status" aria-live="polite" tabindex="-1" hidden><span class="section-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><h3>Mensagem registrada nesta sessão</h3><p></p><button class="button button-primary" type="button" data-close-dialog>Concluir</button></div>
     </dialog>
     <dialog class="app-dialog accessibility-dialog" id="accessibility-dialog" data-accessibility-dialog aria-labelledby="accessibility-title" aria-describedby="accessibility-description">
       <header class="dialog-header"><div><h2 id="accessibility-title">Acessibilidade</h2><p id="accessibility-description">Ajuste o Nivela para uma leitura mais confortável.</p></div><button class="dialog-close" type="button" data-close-accessibility aria-label="Fechar acessibilidade">×</button></header>

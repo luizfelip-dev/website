@@ -62,6 +62,7 @@
     announcement.id = "accessibility-announcement";
     announcement.className = "sr-only";
     announcement.setAttribute("role", "status");
+    announcement.setAttribute("aria-live", "polite");
     document.body.append(announcement);
     document.querySelectorAll("[data-toggle-theme]").forEach((button) => {
       button.addEventListener("click", () => updatePreferences({ theme: preferences.theme === "dark" ? "light" : "dark" }));

@@ -18,11 +18,11 @@
     password.setCustomValidity(password.value.trim().length >= 8 ? "" : "Use pelo menos 8 caracteres, sem contar espaços nas pontas.");
   });
 
-  document.querySelector("#forgot-password").addEventListener("click", (event) => {
+  document.querySelectorAll("[data-forgot-password]").forEach((link) => link.addEventListener("click", (event) => {
     event.preventDefault();
     feedback.textContent = "Este acesso é de demonstração. Entre com um e-mail válido e uma senha de teste com pelo menos 8 caracteres.";
     feedback.hidden = false;
-  });
+  }));
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
