@@ -410,7 +410,7 @@
   }
 
   function initDialogs() {
-    document.querySelectorAll(".app-dialog").forEach((dialog) => {
+    document.querySelectorAll(".app-dialog:not([data-accessibility-dialog])").forEach((dialog) => {
       let startedOutside = false;
       const outside = (event) => {
         const rect = dialog.getBoundingClientRect();

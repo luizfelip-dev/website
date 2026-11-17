@@ -62,6 +62,7 @@
           <p class="nav-label nav-label-secondary">ORGANIZAÇÃO</p>
           <ul>
             <li><a class="nav-link" href="#planejamento"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg>Planejamento &amp; Metas</a></li>
+            <li><button class="nav-link" type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M4 9h16m-8 0v6m-4 6 4-6 4 6"/></svg>Acessibilidade</button></li>
             <li><a class="nav-link" href="#relatorios"><svg class="icon" aria-hidden="true"><use href="#i-chart"/></svg>Relatórios</a></li>
             <li><a class="nav-link" href="#suporte" data-open-support><svg class="icon" aria-hidden="true"><use href="#i-help"/></svg>Suporte</a></li>
           </ul>
@@ -85,6 +86,7 @@
           <p>Meu espaço<span aria-hidden="true">/</span><strong>Dashboard</strong></p>
           <div class="topbar-right">
             <button class="button button-secondary quick-theme" type="button" data-toggle-theme aria-pressed="false">Modo escuro</button>
+            <div class="quick-access" role="group" aria-label="Atalhos de acessibilidade"><button class="button button-secondary" type="button" data-font-step="-1" aria-label="Diminuir tamanho da fonte">A−</button><button class="button button-secondary" type="button" data-font-reset aria-label="Restaurar fonte padrão, 100 por cento" aria-pressed="true">A</button><button class="button button-secondary" type="button" data-font-step="1" aria-label="Aumentar tamanho da fonte">A+</button><button class="button button-secondary" type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button></div>
             <span class="today">Quarta-feira, <time datetime="2026-11-11">11 de novembro</time></span>
             <details class="notifications">
               <summary class="icon-button" aria-label="Notificações, 2 avisos"><svg class="icon" aria-hidden="true"><use href="#i-bell"/></svg><span class="notification-dot" aria-hidden="true"></span></summary>
@@ -272,6 +274,15 @@
         <footer class="dialog-actions"><button class="button button-secondary" type="button" data-close-dialog>Cancelar</button><button class="button button-primary" type="submit">Enviar mensagem</button></footer>
       </form>
       <div class="support-confirmation" id="support-confirmation" role="status" tabindex="-1" hidden><span class="section-icon tone-green"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><h3>Mensagem registrada nesta sessão</h3><p></p><button class="button button-primary" type="button" data-close-dialog>Concluir</button></div>
+    </dialog>
+    <dialog class="app-dialog accessibility-dialog" id="accessibility-dialog" data-accessibility-dialog aria-labelledby="accessibility-title" aria-describedby="accessibility-description">
+      <header class="dialog-header"><div><h2 id="accessibility-title">Acessibilidade</h2><p id="accessibility-description">Ajuste o Nivela para uma leitura mais confortável.</p></div><button class="dialog-close" type="button" data-close-accessibility aria-label="Fechar acessibilidade">×</button></header>
+      <fieldset class="accessibility-fieldset"><legend>Tema da interface</legend><div class="accessibility-buttons"><button class="button button-secondary" type="button" data-theme-choice="light" aria-pressed="true">Modo claro</button><button class="button button-secondary" type="button" data-theme-choice="dark" aria-pressed="false">Modo escuro</button></div></fieldset>
+      <fieldset class="accessibility-fieldset"><legend>Tamanho da fonte</legend><div class="accessibility-buttons"><button class="button button-secondary" type="button" data-font-step="-1" aria-label="Diminuir tamanho da fonte">A−</button><button class="button button-secondary" type="button" data-font-reset aria-label="Restaurar fonte padrão, 100 por cento" aria-pressed="true">A</button><button class="button button-secondary" type="button" data-font-step="1" aria-label="Aumentar tamanho da fonte">A+</button><output data-font-output aria-label="Tamanho atual da fonte">100%</output></div><p class="form-help">Ajuste entre 87,5% e 125%. O botão A restaura o tamanho padrão.</p></fieldset>
+      <div class="contrast-control"><label class="checkbox-option"><input type="checkbox" data-high-contrast>Alto contraste</label><p class="form-help">Reforça contornos e cores para facilitar a leitura.</p></div>
+      <section class="keyboard-help" aria-labelledby="keyboard-help-title"><h3 id="keyboard-help-title">Navegação pelo teclado</h3><p><kbd>Tab</kbd> percorre os controles. <kbd>Enter</kbd> ou <kbd>Espaço</kbd> ativa botões. <kbd>Esc</kbd> fecha as janelas. No carrossel, use <kbd>←</kbd> e <kbd>→</kbd> para mudar de dica.</p></section>
+      <p class="accessibility-status" id="accessibility-status" role="status" aria-live="polite"></p>
+      <footer class="dialog-actions"><button class="button button-secondary" type="button" data-reset-accessibility>Restaurar preferências</button><button class="button button-primary" type="button" data-close-accessibility>Concluir</button></footer>
     </dialog>
     <script src="assets/js/app.js"></script>
     <script src="assets/js/carousel.js"></script>
