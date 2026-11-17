@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300" viewBox="0 0 480 300" fill="none">
+  <ellipse cx="241" cy="251" rx="165" ry="13" fill="#0F172A" opacity=".06"/>
+  <path d="M104 171c-10-65 52-111 124-111s142 38 142 103-53 88-125 88-131-18-141-80Z" fill="#10B981" opacity=".07"/>
+  <circle cx="105" cy="97" r="22" fill="#F59E0B" opacity=".14"/>
+  <path d="m370 111 4-8 4 8 8 4-8 4-4 8-4-8-8-4 8-4Z" fill="#10B981" opacity=".65"/>
+  <g stroke="#0F172A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="104" y="91" width="229" height="151" rx="21" fill="#FFFFFF"/>
+    <path d="M104 125h229"/>
+    <circle cx="124" cy="108" r="3" fill="#F59E0B" stroke="none"/>
+    <circle cx="136" cy="108" r="3" fill="#10B981" stroke="none"/>
+    <circle cx="148" cy="108" r="3" fill="#2563EB" stroke="none"/>
+    <path d="M128 216h117m-117-29h117m-117-29h117" stroke="#0F172A" opacity=".07"/>
+    <path d="M134 216v-39a5 5 0 0 1 5-5h12a5 5 0 0 1 5 5v39" fill="#2563EB" fill-opacity=".18" stroke="none"/>
+    <path d="M171 216v-61a5 5 0 0 1 5-5h12a5 5 0 0 1 5 5v61" fill="#2563EB" fill-opacity=".4" stroke="none"/>
+    <path d="M208 216v-82a5 5 0 0 1 5-5h12a5 5 0 0 1 5 5v82" fill="#2563EB" stroke="none"/>
+    <path d="m134 155 44-24 31 3 29-30" stroke="#10B981" stroke-width="4"/>
+    <path d="m225 104 13 0v13" stroke="#10B981" stroke-width="4"/>
+    <path d="M272 65h79a10 10 0 0 1 10 10v165l-12-8-12 8-12-8-12 8-12-8-12 8-12-8-15 8V75a10 10 0 0 1 10-10Z" fill="#F8FAFC"/>
+    <rect x="278" y="49" width="67" height="29" rx="9" fill="#F59E0B"/>
+    <path d="M304 49a8 8 0 1 1 16 0"/>
+    <path d="M281 105h18m10 0h33M281 126h10m9 0h42M281 147h18m10 0h33" stroke="#0F172A" opacity=".4"/>
+    <path d="M281 166h61" stroke="#0F172A" opacity=".15"/>
+    <path d="M281 184h18m17 0h26M281 202h34" stroke="#2563EB" stroke-width="4"/>
+    <circle cx="111" cy="228" r="25" fill="#10B981"/>
+    <path d="m100 228 8 8 15-17" stroke="#FFFFFF" stroke-width="4"/>
+    <path d="m370 170 10-3m-13 18 11 3" stroke="#2563EB"/>
+  </g>
+  <circle cx="85" cy="158" r="4" fill="#2563EB" opacity=".35"/>
+  <circle cx="369" cy="215" r="5" fill="#F59E0B" opacity=".7"/>
+</svg>
