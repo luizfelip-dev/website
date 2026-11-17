@@ -322,19 +322,19 @@
       const category = item.category in totals ? item.category : "Outros";
       totals[category] += item.amountCents;
     });
-    const colors = ["var(--brand)", "var(--success)", "var(--warning)", "var(--purple)", "#94A3B8"];
+    const colors = ["var(--brand)", "var(--success)", "var(--warning)", "var(--purple)", "var(--chart-neutral)"];
     let start = 0;
     const stops = Object.entries(totals).map(([category, cents], index) => {
       const share = totalExpenses ? cents / totalExpenses * 100 : 0;
       const end = start + share;
       const gap = Math.min(0.6, share / 10);
-      const stop = `${colors[index]} ${start}% ${end - gap}%, white ${end - gap}% ${end}%`;
+      const stop = `${colors[index]} ${start}% ${end - gap}%, var(--bg-card) ${end - gap}% ${end}%`;
       start = end;
       document.querySelectorAll(".chart-legend strong")[index].textContent = `${Math.round(share)}%`;
       return stop;
     });
     const donut = document.querySelector(".donut");
-    donut.style.background = totalExpenses ? `conic-gradient(${stops.join(", ")})` : "#E8EDF4";
+    donut.style.background = totalExpenses ? `conic-gradient(${stops.join(", ")})` : "var(--bg-muted)";
     setMoney(donut.querySelector("strong"), totalExpenses, "small");
     donut.setAttribute("aria-label", `Despesas de ${formatMoney(totalExpenses)}. ${Object.entries(totals).map(([name, cents]) => `${name}: ${formatMoney(cents)}`).join(". ")}`);
     const largest = Object.entries(totals).sort((a, b) => b[1] - a[1])[0][0];
