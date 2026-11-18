@@ -1,29 +1,36 @@
-# Nivela - Controle Financeiro 📊
+# Nivela — Controle Financeiro
 
-**Projeto Final da disciplina de Desenvolvimento de Interfaces (2/2026)**  
-**Instituição:** CEUB - Centro Universitário de Brasília  
-**Professor:** Dr. Felipe Batista da Silva  
-**Aluno:** Luiz Felipe Ribeiro de Mello  
+Site de controle financeiro pessoal feito para o trabalho final de **Desenvolvimento de Interfaces (2/2026)** no **CEUB**, com o **Prof. Dr. Felipe Batista da Silva**.
 
-## Sobre o Projeto
-O Nivela é um protótipo de dashboard de controle financeiro desenvolvido para o trabalho final (Trabalho A2) de Desenvolvimento de Interfaces. A proposta foi construir uma interface limpa, focada em usabilidade (UI/UX) e acessibilidade, simulando um ambiente real de SaaS.
+**Autor:** Luiz Felipe Ribeiro de Mello  
+**Link do site:** [luizfelip-dev.github.io/website](https://luizfelip-dev.github.io/website/)
 
-🔗 **[Acessar o Dashboard (GitHub Pages)](https://luizfelip-dev.github.io/website/)**
+## O que o projeto tem
 
-## Tecnologias e Conceitos Aplicados
-Este projeto foi construído **sem o uso de frameworks** (como Bootstrap ou Tailwind), focando nos fundamentos da Web:
-- **HTML5 Semântico:** Estruturação com `<aside>`, `<main>`, `<article>` para facilitar a leitura por leitores de tela.
-- **CSS3 Puro (Grid & Flexbox):** Layout responsivo e construção de gráficos visuais (rosca e barras) puramente com CSS (`conic-gradient` e manipulação de alturas).
-- **Acessibilidade (WCAG):** 
-  - Contraste de cores validado (nível AA).
-  - Variáveis de cores no `:root` preparadas para implementação futura do Dark Mode.
-  - Hierarquia de fontes e respeito à preferência de movimento reduzido.
+* **Tela de login:** acesso ao sistema com validação de campos, opção de mostrar/ocultar senha e recuperação de acesso.
+* **Dashboard financeiro:** resumo do mês com saldo total, receitas, despesas e resultado líquido que atualizam sozinhos quando um novo gasto é adicionado.
+* **Gráficos em CSS:** gráfico de rosca por categoria e gráfico de barras dos últimos 6 meses feitos apenas com CSS, sem bibliotecas externas.
+* **Contas e transações:** abas para filtrar por data ou tipo (receita/despesa), barra de busca em tempo real e cadastro de novos lançamentos com opção de recorrência e parcelamento.
+* **Orçamentos e metas:** barras de progresso que mudam de cor para avisar quando o gasto passa de 80% ou estoura o limite.
+* **Dicas financeiras:** carrossel interativo com ilustrações e dicas de economia.
+* **Acessibilidade:** modo claro e modo escuro, botões para aumentar ou diminuir a fonte (`A+` / `A-`), contraste ajustado (WCAG) e navegação pelo teclado.
+* **Suporte:** formulário de contato com validação e mensagem de confirmação.
 
-## Estrutura do Repositório
-Organizei o projeto separando os assets de forma padronizada para manter o código limpo:
+## Tecnologias
+
+* HTML5 semântico
+* CSS3 (Grid e Flexbox)
+* JavaScript puro (Vanilla JS)
+
+## Organização das pastas
+
 ```text
 website/
 ├── index.html
-├── assets/
-│   ├── css/style.css
-│   └── fonts/
+├── login.html
+└── assets/
+    ├── css/
+    ├── fonts/
+    ├── img/
+    └── js/
+```
