@@ -123,20 +123,6 @@ website/
 
 </details>
 
-## Como rodar localmente
-
-Com **Git e Python 3** instalados, abra um terminal e execute:
-
-```bash
-git clone https://github.com/luizfelip-dev/website.git
-cd website
-python -m http.server 8000
-```
-
-Depois, acesse [localhost:8000/login.html](http://localhost:8000/login.html).
-
-Para testar a entrada, use um **e-mail em formato válido** e uma **senha de teste com pelo menos oito caracteres**. A senha não é armazenada. Não há dependências de front-end para instalar nem etapa de build.
-
 ## Sobre esta versão
 
 O Nivela é um **protótipo acadêmico**. O período inicial é novembro de 2026, com dados demonstrativos: a tabela começa com seis registros de exemplo, e o resumo representa uma base mensal maior. Os lançamentos adicionados são somados a essa base.
