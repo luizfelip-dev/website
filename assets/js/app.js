@@ -450,12 +450,12 @@
     const dialog = document.querySelector("#support-dialog"); const form = document.querySelector("#support-form"); const confirmation = document.querySelector("#support-confirmation");
     document.querySelectorAll("[data-open-support]").forEach((button) => button.addEventListener("click", (event) => {
       event.preventDefault(); form.hidden = false; confirmation.hidden = true;
-      const user = window.NivelaSession.getUser(); form.elements.namedItem("name").value = state.profile.fullName || ""; form.elements.email.value = user?.email || ""; openDialog(dialog);
+      form.elements.namedItem("name").value = state.profile.fullName || ""; openDialog(dialog);
     }));
     form.addEventListener("submit", (event) => {
       event.preventDefault(); if (!form.reportValidity()) return;
       submitAction(form, async () => {
-        const record = await window.NivelaData.sendSupport({ name: form.elements.namedItem("name").value.trim(), email: form.elements.email.value.trim(), subject: form.elements.subject.value, message: form.elements.message.value.trim() });
+        const record = await window.NivelaData.sendSupport({ name: form.elements.namedItem("name").value.trim(), subject: form.elements.subject.value, message: form.elements.message.value.trim() });
         confirmation.querySelector("p").textContent = `Sua mensagem foi salva. Protocolo ${record.id.slice(0, 8)}. Obrigado pelo contato!`;
         form.reset(); form.hidden = true; confirmation.hidden = false; confirmation.focus();
       });

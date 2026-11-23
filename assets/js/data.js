@@ -266,13 +266,15 @@
   async function sendSupport(input) {
     object(input);
     const context = await session();
-    const email = text(input.email, "o e-mail", 3, 254);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) invalid("Informe um e-mail válido.");
     const id = crypto.randomUUID();
     const body = {
-      id, user_id: context.user.id, name: text(input.name, "o nome", 2, 80), email,
+      id, user_id: context.user.id, name: text(input.name, "o nome", 2, 80),
       subject: choice(input.subject, subjects, "o assunto"), message: text(input.message, "a mensagem", 10, 2000),
     };
+    if (input.email) {
+      body.email = text(input.email, "o e-mail", 3, 254);
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) invalid("Informe um e-mail válido.");
+    }
     await context.request("/rest/v1/support_messages", { method: "POST", body, headers: { Prefer: "return=minimal" } });
     return { id };
   }

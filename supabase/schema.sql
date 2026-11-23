@@ -75,7 +75,7 @@ create table public.support_messages (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   name text not null,
-  email text not null,
+  email text,
   subject text not null,
   message text not null,
   created_at timestamptz not null default now(),
