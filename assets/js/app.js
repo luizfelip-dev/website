@@ -474,10 +474,12 @@
     document.querySelector("#refresh-data").addEventListener("click", loadData);
     const user = await window.NivelaSession.ready;
     if (user) {
-      window.NivelaSession.subscribe(() => {
-        if (window.NivelaSession.getUser()?.id !== user.id) {
+      window.NivelaSession.subscribe(({ event }) => {
+        const current = window.NivelaSession.getUser();
+        if (current?.id !== user.id) {
           document.querySelector(".app-layout").hidden = true;
-          location.replace("index.html");
+          if (current) location.replace("index.html");
+          else if (event !== "SIGNED_OUT") location.replace("login.html");
         }
       });
       await loadData();
