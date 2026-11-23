@@ -1,0 +1,31 @@
+.month-label input { max-width: 11rem; border: 0; background: transparent; color: var(--text-primary); font: inherit; cursor: pointer; }
+.connection-state { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.connection-state .button, .compact-button { min-height: 2rem; padding: .4rem .65rem; font-size: .6875rem; }
+.connection-state[data-error="true"] { border-color: var(--danger); color: var(--danger); }
+.profile-details { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: .25rem; padding: 0; border: 0; color: var(--text-primary); background: transparent; text-align: left; font: inherit; cursor: pointer; }
+.profile-details strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .75rem; }
+.profile-details span { color: var(--text-secondary); font-size: .5625rem; }
+.card-actions, .row-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+.row-actions { flex-wrap: nowrap; }
+.row-actions button, .bill-value button { min-height: 1.8rem; padding: .3rem .45rem; border: .0625rem solid var(--border); border-radius: .375rem; background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: .625rem; cursor: pointer; }
+.row-actions button:hover, .bill-value button:hover { background: var(--brand-light); }
+.row-actions button[data-delete], .button-danger { color: var(--danger); }
+.button-danger { background: var(--bg-red); border: .0625rem solid var(--danger); }
+.transactions-card .card-header, .goals-card .card-header { flex-wrap: wrap; gap: .75rem; }
+.goals-grid > .empty-state { grid-column: 1 / -1; padding: 2rem; border: .0625rem dashed var(--border); border-radius: var(--radius); }
+.goal-actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: 1rem; }
+.goal-actions .button { min-height: 1.8rem; padding: .3rem .5rem; font-size: .625rem; }
+.settled-option { margin-block: 1rem; }
+.app-layout[data-app-state="loading"] .bar { height: 0; }
+.app-layout[data-app-state="loading"] .donut { background: var(--bg-muted); }
+.bar.is-negative { background: var(--danger); }
+.table-scroll table { min-width: 50rem; }
+.due-days { grid-template-columns: repeat(6, minmax(0, 1fr)); overflow-x: auto; }
+.notification-panel [data-notification-list] p { margin-block: .65rem; }
+.profile-details:disabled, button:disabled { cursor: wait; opacity: .65; }
+@media (max-width: 760px) {
+  .profile-details { max-width: 8rem; }
+  .connection-state { font-size: .75rem; }
+  .header-actions { flex-wrap: wrap; }
+  .card-actions { justify-content: space-between; width: 100%; }
+}

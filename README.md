@@ -22,7 +22,7 @@
     &nbsp; · &nbsp;
     <a href="#telas-do-projeto">Ver as telas</a>
     &nbsp; · &nbsp;
-    <a href="#como-rodar-localmente">Rodar na sua máquina</a>
+    <a href="#sua-conta-e-seus-dados">Sua conta e seus dados</a>
   </p>
 
   <picture>
@@ -43,20 +43,20 @@ O projeto nasceu no trabalho final de **Desenvolvimento de Interfaces do CEUB**.
 
 | No Nivela | Como funciona |
 | --- | --- |
-| **Resumo do mês** | Consultar saldo total, receitas, despesas e resultado líquido, atualizados ao adicionar lançamentos do período. |
-| **Contas a pagar e receber** | Alternar entre todas as contas ou filtrar pelas datas de vencimento. |
+| **Resumo do mês** | Consultar pagamentos e recebimentos do mês e o saldo acumulado, com atualização após cada lançamento confirmado. |
+| **Contas a pagar e receber** | Filtrar os vencimentos e confirmar pagamentos ou recebimentos, usando os mesmos dados da tabela. |
 | **Busca de movimentações** | Combinar filtros de receitas e despesas com uma pesquisa por descrição ou categoria, sem se preocupar com acentos. |
-| **Novas transações** | Registrar receita, despesa ou transferência, dividir uma compra em **2 a 24 parcelas** ou repetir um lançamento por **12 meses**. |
-| **Orçamentos e metas** | Acompanhar limites por categoria, receber alertas a partir de **80% e 100%** e consultar exemplos de metas de economia. |
+| **Novas transações** | Criar, editar e excluir receitas, despesas e transferências; dividir uma compra em **2 a 24 parcelas** ou repetir um lançamento por **12 meses**. |
+| **Orçamentos e metas** | Definir limites por categoria, receber alertas a partir de **80% e 100%** e criar metas com o valor que você já guardou. |
 | **Educação financeira** | Navegar por dicas com ilustrações próprias, controles de anterior/próximo e pausa da rotação. |
 | **Preferências de leitura** | Escolher tema claro ou escuro, ativar alto contraste e ajustar a fonte de **87,5% a 125%**. |
-| **Entrada e suporte** | Experimentar o login demonstrativo e um formulário de contato com validação e confirmação local. |
+| **Entrada e suporte** | Criar conta com usuário e senha, entrar com autenticação real e registrar uma mensagem de suporte. |
 
-Os lançamentos novos e as preferências ficam salvos no navegador. Você pode recarregar a página ou sair da sessão sem perder esses dados.
+Os lançamentos, limites e metas ficam salvos no Supabase, separados por conta. As preferências de leitura continuam no navegador. Sair encerra a sessão e preserva seus dados.
 
 ## Telas do projeto
 
-O painel tem versões clara e escura, e as opções de leitura também estão disponíveis no login.
+O painel tem versões clara e escura, e as opções de leitura também estão disponíveis no login. As capturas ilustram a interface; uma conta nova começa com os valores zerados.
 
 <details>
   <summary><strong>Ver login e painel de acessibilidade</strong></summary>
@@ -86,13 +86,13 @@ O painel tem versões clara e escura, e as opções de leitura também estão di
 
 ## Por trás da interface
 
-O **HTML5** organiza a navegação, os cartões, os formulários e os modais com elementos semânticos. O **CSS3** cuida do layout em Grid e Flexbox, dos temas e dos gráficos: a rosca usa `conic-gradient`, e as barras variam de altura conforme os dados. O **JavaScript** conecta as interações e atualiza a página sem recarregar.
+O **HTML5** organiza a navegação, os cartões, os formulários e os modais com elementos semânticos. O **CSS3** cuida do layout em Grid e Flexbox, dos temas e dos gráficos: a rosca usa `conic-gradient`, e as barras variam de altura conforme os dados. O **JavaScript** conecta as interações e atualiza a página sem recarregar. O **Supabase** fornece autenticação, banco PostgreSQL e a função de cadastro executada no servidor. A integração usa APIs REST e não carrega SDK ou framework no navegador.
 
 Algumas escolhas que fazem diferença no uso:
 
 - Os valores são calculados em **centavos inteiros**. Uma compra de R$ 100,00 em três parcelas fica em R$ 33,34 + R$ 33,33 + R$ 33,33, preservando o total.
 - Lançamentos do tipo Transferência **não entram em receitas ou despesas** e não alteram o saldo total.
-- O resumo considera apenas os lançamentos do mês exibido, incluindo a parcela correspondente ao período.
+- O resumo usa os pagamentos e recebimentos confirmados do mês. O saldo inclui o histórico anterior, e os orçamentos também consideram despesas previstas.
 - Status combinam texto e cor. O foco é visível, as imagens têm descrições e o carrossel respeita `prefers-reduced-motion`.
 - A fonte Inter, as ilustrações, os scripts e os estilos são carregados de arquivos locais.
 
@@ -107,33 +107,48 @@ website/
 ├── .nojekyll
 ├── assets/
 │   ├── css/
-│   │   └── style.css          # Layout, componentes e temas
+│   │   ├── style.css          # Layout, componentes e temas
+│   │   ├── auth.css           # Formulários de acesso
+│   │   └── dashboard.css      # Controles do painel
 │   ├── js/
 │   │   ├── app.js             # Transações, filtros, cálculos e suporte
-│   │   ├── session.js         # Estado de sessão e saída
+│   │   ├── config.js          # URL e chave publicável do projeto
+│   │   ├── session.js         # Autenticação, tokens e saída
+│   │   ├── data.js            # Leitura e gravação por usuário
 │   │   ├── login.js           # Formulário de entrada
 │   │   ├── carousel.js        # Navegação e pausas das dicas
 │   │   └── accessibility.js   # Tema, fonte e contraste
 │   ├── img/                   # Ilustrações SVG próprias
 │   ├── fonts/                 # Inter e sua licença
 │   └── favicon.svg
+├── supabase/
+│   ├── schema.sql             # Tabelas e políticas de acesso
+│   ├── username-auth.sql      # Cadastro e limites de tentativas
+│   └── functions/nivela-auth/ # Cadastro executado no servidor
+├── tests/                     # Testes locais de autenticação e dados
 └── docs/
     └── readme/                # Capturas de tela e ícones das tecnologias
 ```
 
 </details>
 
+## Sua conta e seus dados
+
+O cadastro pede **usuário, senha e confirmação da senha**, sem coletar e-mail. O usuário aceita de 3 a 24 letras sem acento, números e `_`. A senha precisa ter pelo menos 8 caracteres. Guarde essas informações: esta versão não oferece recuperação por e-mail.
+
+A criação da conta passa por uma função no servidor. Ela verifica os dados e limita as tentativas por IP e navegador, com contagem persistida no banco. Apagar o armazenamento do navegador não remove o limite de IP. As políticas de **Row Level Security (RLS)** controlam o acesso aos dados financeiros de cada pessoa; a chave publicável do front-end não dá acesso às contas de outros usuários.
+
+O banco está em um projeto dedicado no plano gratuito. As instruções técnicas de configuração e os limites do cadastro estão em [supabase/README.md](supabase/README.md). Para verificar o cliente sem conectar dados reais, consulte [tests/README.md](tests/README.md).
+
 ## Sobre esta versão
 
-O Nivela é um **protótipo acadêmico**. O período inicial é novembro de 2026, com dados demonstrativos: a tabela começa com seis registros de exemplo, e o resumo representa uma base mensal maior. Os lançamentos adicionados são somados a essa base.
-
-O login demonstra uma sessão local, sem autenticação em servidor. O link de recuperação apresenta uma orientação, e o suporte confirma o formulário na própria sessão, sem enviar e-mail. As metas e as faturas iniciais são ilustrativas. Os dados deste navegador não são sincronizados com outros dispositivos.
+O Nivela continua sendo um **projeto acadêmico**, agora com autenticação e persistência remotas. Você pode consultar outros meses, configurar seu saldo inicial e acompanhar contas pendentes. As metas registram seu planejamento; elas não realizam transferências bancárias. O suporte grava a mensagem no banco, sem enviar e-mail automaticamente.
 
 ## Próximas ideias
 
-- [ ] Editar e excluir lançamentos já registrados.
-- [ ] Escolher outros meses de consulta.
-- [ ] Adicionar autenticação real e sincronização de dados entre dispositivos.
+- [ ] Exportar movimentações e relatórios.
+- [ ] Acrescentar outros meios de recuperação de conta.
+- [ ] Permitir gerenciar contas e carteiras separadamente.
 
 ## Quem fez
 
