@@ -1,66 +1,60 @@
-# Banco do Nivela
+# Banco e cadastro do Nivela
 
-`schema.sql` é um script de configuração inicial, não uma migração numerada. Ele deve ser revisado e executado uma vez em um projeto Supabase novo, na conta escolhida para o Nivela. Não execute no projeto de outro aplicativo. Se as tabelas já existirem, compare o esquema antes de qualquer alteração; o script para em conflitos em vez de apagar dados ou presumir uma atualização.
+O projeto usa Supabase Auth, PostgreSQL e uma Edge Function. O navegador carrega apenas JavaScript puro e uma chave publicável. A chave administrativa permanece no ambiente da função, fora dos arquivos públicos e dos tokens de usuário.
 
-## Configurar o projeto
+## Preparar uma instalação nova
 
-1. Confira a conta, a organização e o identificador do projeto de destino.
-2. No SQL Editor desse projeto, execute o conteúdo de `schema.sql` como administrador.
-3. Mantenha o schema `public` disponível na Data API. O script habilita RLS em todas as cinco tabelas e concede somente as operações utilizadas pelo cliente à função `authenticated`. A função `anon` não recebe acesso às tabelas.
-4. Configure Auth com os valores de URL e senha indicados abaixo, mantendo a confirmação de e-mail habilitada.
-5. Na configuração pública do front-end, use a URL do projeto e sua chave publicável. Uma chave `service_role` ou secret não deve ser incluída no navegador ou no repositório.
+Confira primeiro a conta, a organização e o projeto. O ambiente do Nivela foi separado dos outros aplicativos na organização **Luiz - Faculdade**, em um projeto no plano gratuito. Não execute os scripts no banco de outro sistema.
 
-O esquema não contém trigger de criação de perfil nem função `security definer`. Após autenticar, `NivelaData.load()` cria o perfil e os quatro limites de orçamento ausentes com `resolution=ignore-duplicates`. Se outra aba tiver criado ou alterado um registro, os valores existentes são preservados e consultados novamente. O saldo inicial e os limites começam em zero; as transações e metas começam vazias. Dados da antiga demonstração não são importados automaticamente.
+Execute `schema.sql` uma vez no projeto novo. Ele cria perfis, transações, orçamentos, metas e mensagens de suporte, com RLS e permissões por proprietário. Depois aplique `username-auth.sql`, que prepara a quota do cadastro e a proteção contra criação de contas fora do fluxo permitido. Esses arquivos são scripts de configuração, não migrações numeradas inventadas pelo cliente. As alterações aplicadas ao projeto ficam registradas pelo serviço de migrações do Supabase.
 
-## Configurações de Auth
+Publique `functions/nivela-auth/index.js` como a função `nivela-auth`. Ela atende ao cadastro antes de existir uma sessão de usuário, então sua validação de entrada, chave pública e quota é feita no próprio handler. O gateway deve usar `verify_jwt = false` para essa função de cadastro. As tabelas financeiras continuam exigindo uma sessão autenticada e suas políticas de RLS. Não exponha outras funções administrativas com essa configuração.
 
-Em **Authentication → URL Configuration**, configure:
+Em `assets/js/config.js`, informe a URL do projeto e sua chave publicável `sb_publishable_...`. Não inclua `service_role`, `sb_secret_`, senha do banco ou chave SMTP nesse arquivo. As credenciais administrativas da função são lidas de `Deno.env`, no servidor.
 
-- **Site URL:** `https://luizfelip-dev.github.io/website/`.
-- **Redirect URLs:** `https://luizfelip-dev.github.io/website/login.html**`.
-- Para o servidor local na porta 8000, autorize também `http://localhost:8000/login.html**` e, se esse endereço for usado, `http://127.0.0.1:8000/login.html**`.
+## Usuário e senha sem e-mail
 
-O sufixo `**` permite o retorno do fluxo de confirmação/recuperação para essa página com seus parâmetros. Evite permitir origens ou caminhos que o aplicativo não utiliza. Em **Authentication → Sign In / Providers → Email**, mantenha **Confirm email** ativo, habilite o provedor de e-mail/senha e configure senha mínima de **8 caracteres**. O cliente também exige esse mínimo, mas a configuração do Auth é necessária para aplicá-lo no servidor.
+A interface solicita apenas usuário, senha e confirmação. O usuário é normalizado para minúsculas e aceita de 3 a 24 letras sem acento, números ou `_`. A senha tem no mínimo 8 caracteres e respeita o limite de 72 bytes UTF-8 do bcrypt usado pelo Auth. O valor não é cortado silenciosamente nem salvo no navegador.
 
-### Envio de confirmação e recuperação
+O Supabase Auth exige um identificador interno de e-mail para seu fluxo de senha. A função usa um alias reservado em `accounts.nivela.invalid`, gerado a partir do usuário, e cria a conta pela API administrativa com confirmação interna. Esse endereço não é solicitado à pessoa e não recebe mensagens. Não há dependência de SMTP ou de links de confirmação. A confirmação de senha é uma verificação do formulário, distinta de confirmar um endereço por e-mail.
 
-O SMTP padrão do Supabase é destinado a testes. Sem SMTP próprio, ele envia apenas para endereços de membros da equipe da organização: outro destinatário pode receber `email_address_not_authorized`. Isso não libera todos os endereços de um mesmo domínio. O serviço também tem limites baixos de envio, que podem mudar; consulte **Authentication → Rate Limits** antes dos testes.
+O cadastro marca a conta com `app_metadata.nivela_registration`. Somente a API administrativa pode definir esse campo; `user_metadata` pode ser editado pelo usuário e não participa dessa autorização. Um trigger diferido consulta a linha final de `auth.users` no fim da transação e bloqueia a criação quando faltam o marcador, o alias ou a confirmação interna. A verificação precisa ser diferida porque o Auth preenche metadata e confirmação depois do INSERT inicial, na mesma transação.
 
-Para permitir inscrições de terceiros, prepare um SMTP próprio com remetente e domínio validados no fornecedor, ou outra configuração de envio explicitamente aprovada. Esse serviço pode ter limites e custos próprios, mesmo com o banco no plano gratuito. Credenciais SMTP devem ficar nas configurações do projeto, nunca no JavaScript publicado. **Não desabilite a confirmação de e-mail** para contornar erros de entrega, limites ou a autorização de destinatários.
+O cliente nunca grava diretamente em `auth.users`. A autenticação por senha e a renovação dos tokens seguem a API do Supabase, e a identidade é conferida em `/auth/v1/user`. O front-end não aceita um UUID ou JSON local como prova de entrada. Não existe recuperação automática de senha nesta versão sem contato de recuperação: guarde o usuário e a senha.
 
-As configurações descritas são instruções de preparação. A existência destes arquivos não comprova que um projeto remoto já tenha sido criado, que o esquema tenha sido aplicado ou que um e-mail tenha sido entregue.
+## Limites do cadastro
 
-## Contrato do cliente
+A função obtém o endereço de origem pelo cabeçalho `cf-connecting-ip` da plataforma. No ambiente publicado, foram testadas tentativas de forjar cabeçalhos: a plataforma rejeitou o valor forjado de `cf-connecting-ip`; `true-client-ip` mostrou-se controlável pelo cliente e não deve ser usado como fonte confiável. Se o endereço confiável não estiver disponível, o cadastro falha em vez de assumir um valor enviado no corpo da requisição.
 
-Carregue `assets/js/data.js` depois de `session.js` e antes de `app.js`. O módulo espera:
+A tabela privada guarda hashes HMAC do IP e do identificador do navegador, com separação de contexto e segredo do servidor. Não guarda o IP em texto nessa tabela. O identificador do navegador é um UUID persistido localmente; ele é uma barreira complementar e pode ser apagado ou trocado pelo cliente. A quota do IP permanece no servidor.
 
-```js
-window.NivelaSession.ready; // Promise de inicialização da sessão
-await window.NivelaSession.getUser(); // { id, email, user_metadata? }
-await window.NivelaSession.request("/rest/v1/profiles?...", {
-  method: "GET", // GET é o padrão
-  body: {},      // objeto que o transporte serializa como JSON
-  headers: {},
-}); // JSON parseado, ou null se a resposta não contiver corpo
-```
+| Limite | Janela |
+| --- | --- |
+| 5 tentativas por IP | Últimos 60 minutos |
+| 20 tentativas por IP | Últimas 24 horas |
+| 3 tentativas por navegador | Últimas 24 horas |
+| 200 tentativas no projeto | Últimas 24 horas |
 
-O transporte adiciona URL do projeto, chave publicável e token do usuário. Erros HTTP devem rejeitar a Promise. O repositório de dados obtém `user_id` da sessão e ignora campos de proprietário fornecidos nos formulários. As políticas de RLS verificam a mesma propriedade no banco, inclusive em atualizações.
+A reserva da tentativa é atômica no PostgreSQL, usando trava de transação antes de contar e inserir. Tentativas permitidas contam mesmo se o nome já estiver em uso. Requisições bloqueadas não acrescentam linhas indefinidamente, e registros antigos são removidos pela rotina. A resposta de excesso usa HTTP 429 e informa quando tentar novamente. Há validação de formato, tamanho do corpo e um campo de detecção de preenchimento automático por bots.
 
-`NivelaData.load()` retorna `{ profile, transactions, budgets, goals }`. Os objetos usam camelCase:
+Esses controles restringem a criação de contas. CORS limita as origens de uso no navegador, mas não substitui autenticação ou quota: um cliente fora do navegador pode enviar seu próprio cabeçalho de origem.
 
-- Perfil: `userId`, `fullName`, `openingBalanceCents`.
-- Transação: `id`, `userId`, `type`, `description`, `amountCents`, `category`, `date`, `recurring`, `installment`, `installmentCount`, `seriesId`, `status`, `createdAt`.
-- Orçamento: `category`, `limitCents`.
-- Meta: `id`, `name`, `targetCents`, `savedCents`, `tone`.
+## Dados financeiros
 
-Datas permanecem como `YYYY-MM-DD`; valores monetários são inteiros seguros em centavos, com teto individual de `99999999999` centavos (R$ 999.999.999,99). O saldo inicial também admite esse limite negativo. Transações usam status `pending` ou `paid`, sem filtrar datas ou status no carregamento. A aplicação decide quais valores entram no saldo e no orçamento. O carregamento pagina os resultados até receber uma página vazia, inclusive se o limite de linhas configurado no servidor for menor que 1000. A identidade da sessão é conferida antes e depois de cada requisição, para não entregar os dados de uma conta após uma troca de usuário.
+`NivelaData.load()` devolve `{ profile, transactions, budgets, goals }`, com nomes em camelCase. A integração transforma esses campos para as colunas SQL em snake_case. Valores monetários são centavos inteiros, com teto individual de `99999999999`; o saldo inicial também admite esse limite negativo. Datas usam `YYYY-MM-DD`.
 
-As gravações retornam os objetos normalizados. `saveTransactions(entries)` retorna um array e envia o lote em uma única requisição, de modo que uma violação rejeita a inserção do lote. `saveGoal(goal)` cria quando `id` não é informado e atualiza a própria meta quando ele está presente. `updateTransaction(id, changes)` aceita somente campos financeiros conhecidos. `deleteTransaction(id)` e `deleteGoal(id)` retornam `{ id }` ou falham se o registro não estiver disponível à conta. `saveProfile()` aceita nome e saldo inicial. `saveBudget(category, limitCents)` grava uma categoria; `saveBudgets([{ category, limitCents }])` valida o conjunto inteiro e envia um único upsert, evitando gravação parcial dos limites de um formulário.
+O perfil e quatro orçamentos ausentes são criados com `resolution=ignore-duplicates`, preservando valores que outra aba já tenha configurado. Conta nova começa com saldo e limites zerados, sem movimentações ou metas inventadas. O estado antigo de demonstração em localStorage não é importado automaticamente para uma conta.
 
-`sendSupport({ name, email, subject, message })` insere uma mensagem e retorna `{ id }`. O navegador não recebe permissão para consultar ou alterar a tabela de contatos. Isso registra a solicitação no banco; não implementa envio de e-mail nem resposta automática de uma equipe.
+Transações usam `paid` ou `pending`. O resumo e o saldo consideram pagamentos e recebimentos confirmados; a agenda acompanha os pendentes; os orçamentos também incluem gastos previstos. Transferências são neutras no saldo consolidado. Parcelamento divide o total, enquanto recorrência repete o valor. As parcelas futuras começam pendentes.
 
-## Verificações antes de publicar
+As consultas são paginadas, mesmo quando o servidor limita cada resposta a menos de mil linhas. O cliente verifica a identidade antes e depois das requisições e descarta uma resposta antiga se a conta mudar. As políticas do banco verificam `auth.uid()` independentemente desses filtros do cliente.
 
-Em um projeto de teste, autentique duas contas diferentes. Crie registros com a primeira e confirme que a segunda não pode listá-los, alterá-los, excluí-los ou inserir dados com o `user_id` alheio. Verifique também o bloqueio de acesso sem autenticação, valores fracionários em campos de centavos, parcela inválida, categoria desconhecida e uso simultâneo de recorrência e parcelamento. Consulte os advisors de segurança/performance após aplicar o script. As policies usam `(select auth.uid())` e as consultas de dados possuem índices iniciados por `user_id`.
+`saveTransactions` insere o lote de parcelas em uma requisição. `saveBudgets` valida todos os limites e envia um único upsert, evitando gravação parcial do formulário. `saveGoal`, `updateTransaction` e as exclusões agem somente sobre registros disponíveis à conta. O suporte registra nome, assunto e mensagem sem exigir e-mail, com INSERT autorizado e sem leitura da tabela pelo navegador.
 
-Referências: [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [segurança da Data API](https://supabase.com/docs/guides/api/securing-your-api), [limites e paginação](https://supabase.com/docs/reference/javascript/range), [redirecionamentos do Auth](https://supabase.com/docs/guides/auth/redirect-urls), [SMTP próprio](https://supabase.com/docs/guides/auth/auth-smtp) e [testes de e-mail](https://supabase.com/docs/guides/auth/testing-auth-flows).
+## Verificações
+
+Execute os testes nativos descritos em [tests/README.md](../tests/README.md). Esses testes simulam o transporte e não comprovam a configuração remota. No projeto real, verifique o cadastro, o login, a persistência, as tentativas simultâneas e o isolamento entre duas contas. A API anônima não deve ler tabelas financeiras nem chamar a função administrativa de reserva de tentativas.
+
+Após mudanças de schema, consulte os advisors. No banco novo, índices ainda sem uso podem aparecer como informação de performance; preserve os índices que atendem às consultas previstas. Referência: [unused index](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index).
+
+Referências: [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security), [segurança da Data API](https://supabase.com/docs/guides/api/securing-your-api), [funções Edge](https://supabase.com/docs/guides/functions) e [Auth Admin](https://supabase.com/docs/reference/javascript/auth-admin-createuser).
