@@ -99,6 +99,9 @@ const code=expected=>e=>e.code===expected;
  await test('support insere proprietário correto com return minimal e devolve somente id',async()=>{
   const e=environment();const result=await e.api.sendSupport({name:' Teste ',email:'teste@example.com',subject:'Transações',message:'Mensagem com conteúdo válido',user_id:B});assert.equal(e.calls[0].body.user_id,A);assert.equal(e.calls[0].headers.Prefer,'return=minimal');assert.equal(e.calls[0].target,'/rest/v1/support_messages');assert.deepEqual(Object.keys(result),['id']);assert.equal(e.store.support_messages[0].id,result.id);await assert.rejects(e.api.sendSupport({name:'Teste',email:'inválido',subject:'Transações',message:'Mensagem com conteúdo válido'}),code('VALIDATION_ERROR'));
  });
+ await test('suporte sem email associa mensagem à conta autenticada',async()=>{
+  const e=environment();const result=await e.api.sendSupport({name:'Teste',subject:'Transações',message:'Mensagem sem endereço de email',user_id:B});assert.equal(e.calls[0].body.user_id,A);assert.equal(Object.hasOwn(e.calls[0].body,'email'),false);assert.equal(Object.hasOwn(e.store.support_messages[0],'email'),false);assert.equal(e.store.support_messages[0].id,result.id);assert.equal(e.calls[0].headers.Prefer,'return=minimal');
+ });
  await test('falha HTTP propaga sem retorno de sucesso',async()=>{
   const boom=new Error('Servidor indisponível');boom.status=503;const e=environment({hook:()=>{throw boom;}});await assert.rejects(e.api.load(),x=>x===boom);await assert.rejects(e.api.saveTransactions([valid()]),x=>x===boom);
  });

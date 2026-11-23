@@ -7,8 +7,8 @@ const APP_ORIGIN = 'https://nivela.test';
 const SUPABASE_ORIGIN = 'https://nivela-qa.supabase.co';
 const PUBLISHABLE_KEY = 'sb_publishable_nivela_local_tests_only';
 const USERS = Object.freeze({
-  A: { id: '11111111-1111-4111-8111-111111111111', email: 'ana@example.test', password: 'SenhaAna123!', full_name: 'Ana Teste' },
-  B: { id: '22222222-2222-4222-8222-222222222222', email: 'bia@example.test', password: 'SenhaBia123!', full_name: 'Bia Teste' },
+  A: { id: '11111111-1111-4111-8111-111111111111', username: 'ana_teste', email: 'ana_teste@accounts.nivela.invalid', password: 'SenhaAna123!', full_name: 'Ana Teste' },
+  B: { id: '22222222-2222-4222-8222-222222222222', username: 'bia_teste', email: 'bia_teste@accounts.nivela.invalid', password: 'SenhaBia123!', full_name: 'Bia Teste' },
 });
 const clone = value => structuredClone(value);
 const jsonResponse = (status, body, headers = {}) => ({ status, body, headers: { 'content-type': 'application/json; charset=utf-8', ...headers } });
@@ -19,12 +19,9 @@ class FakeSupabase {
   constructor(options = {}) {
     this.origin = options.origin || SUPABASE_ORIGIN;
     this.publishableKey = options.publishableKey || PUBLISHABLE_KEY;
-    this.confirmEmail = options.confirmEmail !== false;
     this.schema = options.schema || { profiles: { owner: 'user_id' }, transactions: { owner: 'user_id' }, budgets: { owner: 'user_id' }, goals: { owner: 'user_id' }, support_messages: { owner: 'user_id' } };
     this.tables = Object.fromEntries(Object.keys(this.schema).map(name => [name, clone(options.rows?.[name] || [])]));
     this.users = new Map();
-    this.authCodes = new Map();
-    this.emailFlows = [];
     this.access = new Map();
     this.refresh = new Map();
     this.requests = [];
@@ -35,7 +32,7 @@ class FakeSupabase {
     for (const fixture of Object.values(USERS)) this.addUser({ ...fixture, confirmed: true });
   }
   addUser(input) {
-    const user = { id: input.id || crypto.randomUUID(), email: input.email, password: input.password, confirmed: input.confirmed !== false, metadata: input.metadata || { full_name: input.full_name || '' } };
+    const user = { id: input.id || crypto.randomUUID(), email: input.email, password: input.password, confirmed: input.confirmed !== false, metadata: input.metadata || { full_name: input.full_name || '', username: input.username || input.email?.split('@')[0] || '' } };
     this.users.set(user.id, user);
     return clone(user);
   }
@@ -61,17 +58,6 @@ class FakeSupabase {
     if (!session || session.revoked || session.expiresAt <= Date.now() / 1000) return null;
     return this.users.get(session.userId) || null;
   }
-  emailCode(email, kind = 'confirm') {
-    const flow = [...this.emailFlows].reverse().find(item => item.email === email && item.kind === kind);
-    if (!flow) throw new Error('No mock email flow');
-    const user = [...this.users.values()].find(item => item.email === email);
-    if (!user) throw new Error('No mock email user');
-    if (kind === 'confirm') user.confirmed = true;
-    const code = crypto.randomUUID();
-    this.authCodes.set(code, { userId: user.id, challenge: flow.challenge });
-    const url = new URL(flow.redirect); url.searchParams.set('code', code);
-    return url.href;
-  }
   failNext(pathname, options = {}) { this.faults.push({ pathname, ...options, status: options.status || 503, once: true }); }
   delayNext(pathname, delayMs, options = {}) { this.faults.push({ pathname, ...options, delayMs, once: true }); }
   async handle(input) {
@@ -88,7 +74,8 @@ class FakeSupabase {
     let result;
     if (method === 'OPTIONS') result = jsonResponse(200, {});
     else if (!headers.apikey || headers.apikey !== this.publishableKey) result = apiError(401, 'invalid_api_key', 'Invalid API key');
-    else if (fault?.status) result = jsonResponse(fault.status, fault.body || { message: 'Mock temporary failure', code: 'mock_failure' });
+    else if (fault?.status) result = jsonResponse(fault.status, fault.body || { message: 'Mock temporary failure', code: 'mock_failure' }, fault.headers);
+    else if (url.pathname === '/functions/v1/nivela-auth') result = this.handleRegistration({ method, body });
     else if (url.pathname.startsWith('/auth/v1/')) result = this.handleAuth({ url, method, headers, body, user });
     else if (url.pathname.startsWith('/rest/v1/')) result = this.handleRest({ url, method, headers, body, user });
     else { this.unhandled.push(record); result = apiError(501, 'mock_unhandled', 'Unsupported mock endpoint'); }
@@ -96,27 +83,25 @@ class FakeSupabase {
     if (fault?.delayMs) await new Promise(resolve => setTimeout(resolve, fault.delayMs));
     return result;
   }
+  handleRegistration({ method, body }) {
+    if (method !== 'POST') return apiError(405, 'method_not_allowed', 'Use POST');
+    const username = typeof body?.username === 'string' ? body.username.trim().toLowerCase() : '';
+    if (!/^[a-z0-9_]{3,24}$/.test(username)) return apiError(422, 'invalid_username', 'Nome de usuário inválido');
+    if (typeof body?.password !== 'string' || body.password.length < 8 || body.password.length > 128) return apiError(422, 'weak_password', 'Senha inválida');
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.browserId || '')) return apiError(422, 'invalid_browser', 'Identificador de navegador inválido');
+    if (body.website) return apiError(400, 'invalid_registration', 'Cadastro inválido');
+    const email = `${username}@accounts.nivela.invalid`;
+    if ([...this.users.values()].some(user => user.email === email)) return apiError(409, 'username_taken', 'Este nome de usuário já está em uso');
+    const added = this.addUser({ email, username, password: body.password, confirmed: true, metadata: { username, full_name: username } });
+    this.onUserCreated(added, this);
+    return jsonResponse(201, { created: true, username });
+  }
   handleAuth({ url, method, headers, body, user }) {
     const endpoint = url.pathname.slice('/auth/v1/'.length);
     if (endpoint === 'signup' && method === 'POST') {
-      if (!body?.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) return apiError(422, 'validation_failed', 'Invalid email');
-      if (typeof body.password !== 'string' || body.password.length < 8) return apiError(422, 'weak_password', 'Password should be at least 8 characters');
-      const existing = [...this.users.values()].find(item => item.email === body.email);
-      if (existing) return jsonResponse(200, { ...this.userPayload(existing), identities: [] });
-      const added = this.addUser({ email: body.email, password: body.password, confirmed: !this.confirmEmail, metadata: body.data || body.user_metadata || {} });
-      this.onUserCreated(added, this);
-      this.emailFlows.push({ email: added.email, kind: 'confirm', redirect: url.searchParams.get('redirect_to'), challenge: body.code_challenge });
-      return jsonResponse(200, this.confirmEmail ? this.userPayload(added) : this.issueSession(added.id));
+      return apiError(403, 'registration_restricted', 'Public signup is disabled');
     }
     if (endpoint === 'token' && method === 'POST') {
-      if (url.searchParams.get('grant_type') === 'pkce') {
-        const flow = this.authCodes.get(body?.auth_code);
-        if (!flow) return apiError(400, 'flow_state_not_found', 'Invalid authorization code');
-        const challenge = crypto.createHash('sha256').update(body?.code_verifier || '').digest('base64url');
-        if (challenge !== flow.challenge) return apiError(400, 'bad_code_verifier', 'Invalid code verifier');
-        this.authCodes.delete(body.auth_code);
-        return jsonResponse(200, this.issueSession(flow.userId));
-      }
       if (url.searchParams.get('grant_type') === 'refresh_token') {
         const userId = this.refresh.get(body?.refresh_token);
         if (!userId) return apiError(400, 'refresh_token_not_found', 'Invalid Refresh Token');
@@ -129,7 +114,6 @@ class FakeSupabase {
       if (!account.confirmed) return apiError(400, 'email_not_confirmed', 'Email not confirmed');
       return jsonResponse(200, this.issueSession(account.id));
     }
-    if (endpoint === 'recover' && method === 'POST') { this.emailFlows.push({ email: body?.email, kind: 'recovery', redirect: url.searchParams.get('redirect_to'), challenge: body?.code_challenge }); return jsonResponse(200, {}); }
     if (endpoint === 'user' && method === 'GET') return user ? jsonResponse(200, this.userPayload(user)) : apiError(401, 'bad_jwt', 'Invalid JWT');
     if (endpoint === 'user' && method === 'PUT') {
       if (!user) return apiError(401, 'bad_jwt', 'Invalid JWT');
@@ -240,6 +224,10 @@ class FakeSupabase {
 async function createContext(browser, options = {}) {
   const root = options.root || path.resolve(__dirname, '../..');
   const backend = options.backend || new FakeSupabase();
+  const overrides = {
+    'assets/js/config.js': `window.NivelaConfig=Object.freeze(${JSON.stringify({ supabaseUrl: backend.origin, publishableKey: backend.publishableKey })});`,
+    ...options.overrides,
+  };
   const context = await browser.newContext({ viewport: options.viewport || { width: 1440, height: 1000 }, locale: 'pt-BR', reducedMotion: options.reducedMotion || 'no-preference' });
   const errors = [], blocked = [];
   context.on('page', page => page.on('pageerror', error => errors.push({ url: page.url(), message: error.message })));
@@ -258,7 +246,7 @@ async function createContext(browser, options = {}) {
     }
     if (url.origin !== APP_ORIGIN) { blocked.push(url.href); return route.abort(); }
     const relative = decodeURIComponent(url.pathname).replace(/^\//, '') || 'index.html';
-    if (Object.hasOwn(options.overrides || {}, relative)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: options.overrides[relative] });
+    if (Object.hasOwn(overrides, relative)) return route.fulfill({ status: 200, contentType: 'text/javascript', body: overrides[relative] });
     const target = path.resolve(root, relative);
     if (!target.startsWith(path.resolve(root) + path.sep) || !fs.existsSync(target) || !fs.statSync(target).isFile()) return route.fulfill({ status: 404, body: 'not found' });
     const contentType = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' }[path.extname(target)] || 'application/octet-stream';
