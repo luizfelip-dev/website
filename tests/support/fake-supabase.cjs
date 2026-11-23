@@ -87,7 +87,7 @@ class FakeSupabase {
     if (method !== 'POST') return apiError(405, 'method_not_allowed', 'Use POST');
     const username = typeof body?.username === 'string' ? body.username.trim().toLowerCase() : '';
     if (!/^[a-z0-9_]{3,24}$/.test(username)) return apiError(422, 'invalid_username', 'Nome de usuário inválido');
-    if (typeof body?.password !== 'string' || body.password.length < 8 || body.password.length > 128) return apiError(422, 'weak_password', 'Senha inválida');
+    if (typeof body?.password !== 'string' || Array.from(body.password.trim()).length < 8 || Buffer.byteLength(body.password, 'utf8') > 72) return apiError(422, 'weak_password', 'Senha inválida');
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.browserId || '')) return apiError(422, 'invalid_browser', 'Identificador de navegador inválido');
     if (body.website) return apiError(400, 'invalid_registration', 'Cadastro inválido');
     const email = `${username}@accounts.nivela.invalid`;

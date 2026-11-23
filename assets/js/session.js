@@ -42,7 +42,8 @@
       username_exists: "Este usuário já está em uso. Escolha outro.",
       user_already_exists: "Este usuário já está em uso. Escolha outro.",
       invalid_username: "Use de 3 a 24 letras sem acento, números ou sublinhado no usuário.",
-      invalid_password: "Use uma senha de 8 a 128 caracteres.",
+      invalid_password: "Use uma senha com pelo menos 8 caracteres, sem contar espaços nas pontas.",
+      password_too_long: "Esta senha é muito longa. Reduza a quantidade de caracteres.",
       invalid_browser: "Não foi possível preparar o cadastro neste navegador. Recarregue a página e tente novamente.",
       signup_rate_limited: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.",
       signup_unavailable: "O cadastro está temporariamente indisponível. Tente novamente em instantes.",
@@ -321,7 +322,8 @@
   function credentials(username, password) {
     const normalized = typeof username === "string" ? username.trim().toLowerCase() : "";
     if (!usernamePattern.test(normalized)) throw new AuthError(friendlyError(422, "invalid_username"), "invalid_username", 422);
-    if (typeof password !== "string" || password.length < 8 || password.length > 128) throw new AuthError(friendlyError(422, "invalid_password"), "invalid_password", 422);
+    if (typeof password !== "string" || Array.from(password.trim()).length < 8) throw new AuthError(friendlyError(422, "invalid_password"), "invalid_password", 422);
+    if (new TextEncoder().encode(password).length > 72) throw new AuthError(friendlyError(422, "password_too_long"), "password_too_long", 422);
     return normalized;
   }
 
