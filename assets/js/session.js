@@ -12,7 +12,8 @@
   const prefix = `nivela.auth.v2:${baseUrl || "unconfigured"}`;
   const sessionKey = `${prefix}:session`;
   const logoutKey = `${prefix}:logout`;
-  const flowPrefix = `${prefix}:pkce:`;
+  const browserKey = `${prefix}:browser`;
+  const usernamePattern = /^[a-z0-9_]{3,24}$/;
   const listeners = new Set();
   let session = null;
   let user = null;
@@ -25,32 +26,30 @@
   try { channel = new BroadcastChannel(`${prefix}:events`); } catch { /* storage também sincroniza a saída. */ }
 
   class AuthError extends Error {
-    constructor(message, code = "auth_error", status = 0) {
+    constructor(message, code = "auth_error", status = 0, retryAfter = 0) {
       super(message);
       this.name = "NivelaAuthError";
       this.code = code;
       this.status = status;
+      this.retryAfter = retryAfter;
     }
   }
 
   function friendlyError(status, code) {
     const messages = {
-      invalid_credentials: "E-mail ou senha incorretos. Confira os dados e tente novamente.",
-      email_not_confirmed: "Confirme seu e-mail pelo link recebido antes de entrar.",
-      email_exists: "Não foi possível criar esta conta. Entre ou recupere sua senha.",
-      user_already_exists: "Não foi possível criar esta conta. Entre ou recupere sua senha.",
+      invalid_credentials: "Usuário ou senha incorretos. Confira os dados e tente novamente.",
+      username_taken: "Este usuário já está em uso. Escolha outro.",
+      username_exists: "Este usuário já está em uso. Escolha outro.",
+      user_already_exists: "Este usuário já está em uso. Escolha outro.",
+      invalid_username: "Use de 3 a 24 letras sem acento, números ou sublinhado no usuário.",
+      invalid_password: "Use uma senha de 8 a 128 caracteres.",
+      invalid_browser: "Não foi possível preparar o cadastro neste navegador. Recarregue a página e tente novamente.",
+      signup_rate_limited: "Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.",
+      signup_unavailable: "O cadastro está temporariamente indisponível. Tente novamente em instantes.",
       weak_password: "Escolha uma senha mais forte, com pelo menos 8 caracteres.",
-      same_password: "Escolha uma senha diferente da senha atual.",
-      otp_expired: "Este link expirou ou já foi utilizado. Solicite um novo link.",
-      flow_state_expired: "Este link expirou. Solicite um novo link.",
-      flow_state_not_found: "Este link não está mais disponível. Solicite um novo link.",
-      bad_code_verifier: "Abra o link no mesmo navegador em que ele foi solicitado, ou solicite outro link.",
       validation_failed: "Confira os campos preenchidos e tente novamente.",
       signup_disabled: "O cadastro de novas contas não está disponível neste momento.",
-      over_email_send_rate_limit: "Aguarde alguns minutos antes de solicitar outro e-mail.",
       over_request_rate_limit: "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
-      email_address_invalid: "Informe um endereço de e-mail válido.",
-      email_address_not_authorized: "Não foi possível enviar o e-mail para este endereço. Tente novamente mais tarde.",
       session_not_found: "Sua sessão terminou. Entre novamente para continuar.",
       refresh_token_not_found: "Sua sessão terminou. Entre novamente para continuar.",
       refresh_token_already_used: "Sua sessão terminou. Entre novamente para continuar.",
@@ -61,6 +60,21 @@
     if (status === 403) return "Você não tem permissão para concluir esta ação.";
     if (status >= 500) return "O serviço está temporariamente indisponível. Tente novamente em instantes.";
     return "Não foi possível concluir a ação. Confira os dados e tente novamente.";
+  }
+
+  function retryDelay(value) {
+    if (value === undefined || value === null || value === "") return 0;
+    const seconds = Number(value);
+    if (Number.isFinite(seconds) && seconds >= 0) return Math.min(86400, Math.ceil(seconds));
+    const date = Date.parse(value);
+    return Number.isFinite(date) ? Math.max(0, Math.min(86400, Math.ceil((date - Date.now()) / 1000))) : 0;
+  }
+
+  function rateLimitMessage(seconds) {
+    if (!seconds) return "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+    const amount = seconds < 60 ? seconds : seconds < 3600 ? Math.ceil(seconds / 60) : Math.ceil(seconds / 3600);
+    const unit = seconds < 60 ? "segundo" : seconds < 3600 ? "minuto" : "hora";
+    return `Muitas tentativas. Aguarde cerca de ${amount} ${unit}${amount === 1 ? "" : "s"} e tente novamente.`;
   }
 
   function readStore(name, key) {
@@ -134,7 +148,9 @@
       try { payload = text ? JSON.parse(text) : null; } catch { /* Não insere respostas HTML na interface. */ }
       if (!response.ok) {
         const code = payload?.error_code || payload?.code || payload?.error || "request_failed";
-        throw new AuthError(friendlyError(response.status, code), String(code), response.status);
+        const retryAfter = retryDelay(payload?.retryAfter ?? payload?.retry_after ?? response.headers?.get?.("Retry-After"));
+        const message = response.status === 429 ? rateLimitMessage(retryAfter) : friendlyError(response.status, code);
+        throw new AuthError(message, String(code), response.status, retryAfter);
       }
       return payload;
     } catch (error) {
@@ -155,7 +171,8 @@
   async function validateUser(token) {
     const verified = await authRequest("user", {}, token);
     if (!verified || typeof verified.id !== "string" || !verified.id || !verified.email) throw new AuthError("Não foi possível validar sua sessão. Entre novamente.", "invalid_session", 401);
-    return Object.freeze({ ...verified });
+    const alias = String(verified.email).match(/^([a-z0-9_]{3,24})@accounts\.nivela\.invalid$/);
+    return Object.freeze({ ...verified, username: alias?.[1] || "" });
   }
 
   function scheduleRefresh() {
@@ -168,14 +185,14 @@
     }), delay);
   }
 
-  async function acceptSession(payload, remember, recovery = false, expectedEpoch = epoch, expectedUserId = null) {
+  async function acceptSession(payload, remember, expectedEpoch = epoch, expectedUserId = null) {
     if (!payload?.access_token || !payload.refresh_token || !(Number(payload.expires_in) > 0) || !Number.isFinite(Number(payload.expires_in))) throw new AuthError("A resposta de acesso não pôde ser validada. Tente novamente.", "invalid_session");
     const verified = await validateUser(payload.access_token);
     if (expectedEpoch !== epoch) throw new AuthError("Esta sessão foi encerrada. Entre novamente.", "session_changed", 401);
     if (expectedUserId && verified.id !== expectedUserId) throw new AuthError("A conta conectada mudou. Recarregue a página para continuar.", "session_changed", 409);
     const previousUserId = user?.id;
     session = { version: 2, project: baseUrl, access_token: payload.access_token, refresh_token: payload.refresh_token,
-      expires_at: Math.floor(Date.now() / 1000) + Number(payload.expires_in), remember: remember === true, recovery: recovery === true };
+      expires_at: Math.floor(Date.now() / 1000) + Number(payload.expires_in), remember: remember === true };
     user = verified;
     try { persistSession(); } catch (error) { clearSession(); throw error; }
     lastError = null;
@@ -206,7 +223,7 @@
       const current = session;
       try {
         const payload = await authRequest("token?grant_type=refresh_token", { method: "POST", body: { refresh_token: current.refresh_token } });
-        await acceptSession(payload, current.remember, current.recovery, expectedEpoch, user?.id || null);
+        await acceptSession(payload, current.remember, expectedEpoch, user?.id || null);
         emit("TOKEN_REFRESHED");
         return session.access_token;
       } catch (error) {
@@ -222,56 +239,9 @@
   function base64url(bytes) {
     return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   }
-  async function createFlow(kind) {
-    requireConfig();
-    if (!crypto.subtle || !crypto.getRandomValues) throw new AuthError("Abra o Nivela por uma conexão HTTPS para continuar.", "secure_context_required");
-    const verifier = base64url(crypto.getRandomValues(new Uint8Array(32)));
-    const id = base64url(crypto.getRandomValues(new Uint8Array(18)));
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
-    const record = { verifier, kind, project: baseUrl, expiresAt: Date.now() + 86400000 };
-    // Um verificador temporário permite abrir o e-mail em outra aba do mesmo navegador.
-    // Sem Manter conectado, os tokens de sessão ficam somente em sessionStorage.
-    if (!writeStore("localStorage", flowPrefix + id, JSON.stringify(record)) && !writeStore("sessionStorage", flowPrefix + id, JSON.stringify(record))) throw new AuthError("Permita o armazenamento neste navegador para confirmar seu e-mail.", "storage_unavailable");
-    const redirect = new URL("login.html", location.href);
-    redirect.search = new URLSearchParams({ auth: kind, flow: id }).toString();
-    redirect.hash = "";
-    return { id, challenge: base64url(new Uint8Array(digest)), redirect: redirect.href };
-  }
-  function removeFlow(id) { removeStore("localStorage", flowPrefix + id); removeStore("sessionStorage", flowPrefix + id); }
-  function clearCallbackUrl() {
-    const clean = new URL(location.href);
-    ["code", "auth", "flow", "error", "error_code", "error_description"].forEach((key) => clean.searchParams.delete(key));
-    if (/access_token|refresh_token|error/.test(clean.hash)) clean.hash = "";
-    history.replaceState(null, "", clean.pathname + clean.search + clean.hash);
-  }
-
-  async function readCallback() {
-    const expectedEpoch = epoch;
-    const url = new URL(location.href);
-    const code = url.searchParams.get("code");
-    const hash = new URLSearchParams(url.hash.slice(1));
-    const errorCode = url.searchParams.get("error_code") || hash.get("error_code") || url.searchParams.get("error") || hash.get("error");
-    if (errorCode) { clearCallbackUrl(); throw new AuthError(friendlyError(400, errorCode), errorCode, 400); }
-    // Tokens colocados na URL não são aceitos como sessão. O retorno usa PKCE.
-    if (hash.has("access_token") || hash.has("refresh_token")) { clearCallbackUrl(); throw new AuthError("Solicite um novo link de confirmação ou recuperação neste navegador.", "unsupported_callback"); }
-    if (!code) return false;
-    const id = url.searchParams.get("flow") || "";
-    const saved = readStore("localStorage", flowPrefix + id) || readStore("sessionStorage", flowPrefix + id);
-    clearCallbackUrl();
-    let flow;
-    try { flow = JSON.parse(saved || "null"); } catch { /* Link sem verificador válido. */ }
-    if (!flow || flow.project !== baseUrl || flow.expiresAt <= Date.now() || !["confirm", "recovery"].includes(flow.kind) || !/^[A-Za-z0-9_-]{43,128}$/.test(flow.verifier)) throw new AuthError("Abra o link no mesmo navegador em que ele foi solicitado, ou solicite outro link.", "pkce_missing");
-    try {
-      const payload = await authRequest("token?grant_type=pkce", { method: "POST", body: { auth_code: code, code_verifier: flow.verifier } });
-      await acceptSession(payload, false, flow.kind === "recovery", expectedEpoch);
-    } finally { removeFlow(id); }
-    return true;
-  }
-
   async function initialize() {
     const initializationEpoch = epoch;
     try {
-      if (await readCallback()) return user;
       requireConfig();
       session = readStoredSession();
       if (!session) return null;
@@ -348,40 +318,59 @@
     }
   }
 
-  async function signIn(email, password, remember = false) {
+  function credentials(username, password) {
+    const normalized = typeof username === "string" ? username.trim().toLowerCase() : "";
+    if (!usernamePattern.test(normalized)) throw new AuthError(friendlyError(422, "invalid_username"), "invalid_username", 422);
+    if (typeof password !== "string" || password.length < 8 || password.length > 128) throw new AuthError(friendlyError(422, "invalid_password"), "invalid_password", 422);
+    return normalized;
+  }
+
+  function browserId() {
+    const pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    for (const name of ["localStorage", "sessionStorage"]) {
+      const saved = readStore(name, browserKey);
+      if (pattern.test(saved || "")) return saved;
+    }
+    if (!crypto.randomUUID) throw new AuthError("Abra o Nivela por uma conexão HTTPS para criar sua conta.", "secure_context_required");
+    const id = crypto.randomUUID();
+    for (const name of ["localStorage", "sessionStorage"]) {
+      if (writeStore(name, browserKey, id) && readStore(name, browserKey) === id) return id;
+    }
+    throw new AuthError("Permita o armazenamento neste navegador para criar sua conta.", "storage_unavailable");
+  }
+
+  async function passwordSignIn(username, password, remember, expectedEpoch) {
+    if (epoch !== expectedEpoch) throw new AuthError("A conta conectada mudou. Entre novamente.", "session_changed", 409);
+    // O endereço é um identificador interno exigido pelo Auth; nunca é solicitado na interface.
+    const payload = await authRequest("token?grant_type=password", { method: "POST", body: { email: `${username}@accounts.nivela.invalid`, password } });
+    return acceptSession(payload, remember, expectedEpoch);
+  }
+
+  async function signIn(username, password, remember = false) {
     await ready;
     requireConfig();
+    const normalized = credentials(username, password);
     const expectedEpoch = ++epoch;
-    const payload = await authRequest("token?grant_type=password", { method: "POST", body: { email: email.trim(), password } });
-    return acceptSession(payload, remember, false, expectedEpoch);
+    return passwordSignIn(normalized, password, remember, expectedEpoch);
   }
-  async function signUp(name, email, password) {
+
+  async function signUp(username, password, website = "") {
     await ready;
+    requireConfig();
+    const normalized = credentials(username, password);
+    const device = browserId();
     const expectedEpoch = ++epoch;
-    const flow = await createFlow("confirm");
+    const result = await fetchJson(`${baseUrl}/functions/v1/nivela-auth`, {
+      method: "POST", body: { username: normalized, password, browserId: device, website: String(website) },
+    });
+    if (epoch !== expectedEpoch) throw new AuthError("A conta conectada mudou. Entre novamente.", "session_changed", 409);
+    if (result?.created !== true) throw new AuthError("Não foi possível concluir o cadastro. Tente novamente.", "registration_failed");
     try {
-      const payload = await authRequest(`signup?redirect_to=${encodeURIComponent(flow.redirect)}`, { method: "POST", body: { email: email.trim(), password, data: { full_name: name.trim() }, code_challenge: flow.challenge, code_challenge_method: "s256" } });
-      if (payload?.access_token) { removeFlow(flow.id); await acceptSession(payload, false, false, expectedEpoch); return { user, requiresConfirmation: false }; }
-      return { user: null, requiresConfirmation: true };
-    } catch (error) { removeFlow(flow.id); throw error; }
-  }
-  async function requestPasswordReset(email) {
-    await ready;
-    const flow = await createFlow("recovery");
-    try { await authRequest(`recover?redirect_to=${encodeURIComponent(flow.redirect)}`, { method: "POST", body: { email: email.trim(), code_challenge: flow.challenge, code_challenge_method: "s256" } }); }
-    catch (error) { removeFlow(flow.id); throw error; }
-  }
-  async function updatePassword(password) {
-    if (!session?.recovery || !user) throw new AuthError("Solicite um novo link de recuperação para alterar sua senha.", "recovery_required");
-    const expectedEpoch = epoch;
-    const expectedUserId = user.id;
-    const token = await getAccessToken();
-    if (epoch !== expectedEpoch || user?.id !== expectedUserId || !session?.recovery) throw new AuthError("A conta conectada mudou. Solicite um novo link de recuperação.", "session_changed", 409);
-    await authRequest("user", { method: "PUT", body: { password } }, token);
-    if (epoch !== expectedEpoch || user?.id !== expectedUserId || !session) throw new AuthError("A conta conectada mudou. Recarregue a página.", "session_changed", 409);
-    session.recovery = false;
-    persistSession();
-    return user;
+      return await passwordSignIn(normalized, password, false, expectedEpoch);
+    } catch (error) {
+      if (error.code === "session_changed") throw error;
+      throw new AuthError("Sua conta foi criada. Entre com seu usuário e senha para continuar.", "registration_login_failed", error.status, error.retryAfter);
+    }
   }
   async function signOut() {
     const token = session?.access_token;
@@ -419,9 +408,7 @@
 
   window.NivelaSession = Object.freeze({
     ready, getUser: () => user, getAccessToken, request, signIn, signUp, signOut,
-    requestPasswordReset, updatePassword,
     isConfigured: () => configured, getLastError: () => lastError,
-    isPasswordRecovery: () => Boolean(user && session?.recovery),
     subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
   });
   ready.then((verified) => { if (!loginPage && !verified) location.replace("login.html"); });

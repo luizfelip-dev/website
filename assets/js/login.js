@@ -9,14 +9,10 @@
   const forms = {
     login: document.querySelector("#login-form"),
     signup: document.querySelector("#signup-form"),
-    recovery: document.querySelector("#recovery-form"),
-    reset: document.querySelector("#reset-form"),
   };
   const headings = {
     login: ["Entre na sua conta", "Vamos cuidar dos seus próximos planos?"],
     signup: ["Crie sua conta", "Seu próximo passo começa com organização."],
-    recovery: ["Recupere seu acesso", "Receba um link para escolher uma nova senha."],
-    reset: ["Escolha uma nova senha", "Proteja o acesso aos seus planos."],
   };
   let busy = false;
   let view = "login";
@@ -31,13 +27,12 @@
   }
 
   function showView(next, focus = true, keepMessage = false) {
-    if (busy || !forms[next] || (next === "reset" && !auth.isPasswordRecovery())) return;
+    if (busy || !forms[next]) return;
     view = next;
     Object.entries(forms).forEach(([name, form]) => { form.hidden = name !== next; });
     title.textContent = headings[next][0];
     subtitle.textContent = headings[next][1];
     document.title = `${headings[next][0]} — Nivela Controle Financeiro`;
-    document.querySelector(".auth-switch").hidden = next === "reset";
     document.querySelectorAll(".auth-switch [data-auth-view]").forEach((button) => {
       const active = button.dataset.authView === next;
       button.classList.toggle("is-active", active);
@@ -80,7 +75,14 @@
     message();
     setBusy(true, label);
     try { await work(); }
-    catch (error) { message(error.message || "Não foi possível concluir a ação. Tente novamente.", "error"); }
+    catch (error) {
+      if (error.code === "registration_login_failed") {
+        forms.login.elements.username.value = forms.signup.elements.username.value.trim().toLowerCase();
+        setBusy(false);
+        showView("login");
+      }
+      message(error.message || "Não foi possível concluir a ação. Tente novamente.", "error");
+    }
     finally { setBusy(false); }
   }
 
@@ -103,32 +105,26 @@
     });
   });
   document.querySelectorAll("[data-auth-view]").forEach((button) => button.addEventListener("click", () => {
-    if (view === "reset") return;
     showView(button.dataset.authView);
   }));
-  document.querySelectorAll("[data-forgot-password]").forEach((link) => link.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (busy || view === "reset") return;
-    forms.recovery.elements.email.value = forms.login.elements.email.value.trim();
-    showView("recovery");
+  document.querySelectorAll("[data-auth-help]").forEach((button) => button.addEventListener("click", () => {
+    if (busy) return;
+    message("Entre com o usuário e a senha escolhidos no cadastro. Guarde essas informações: o Nivela não oferece recuperação automática de acesso.");
   }));
-  [forms.signup, forms.reset].forEach((form) => {
-    form.elements.password.addEventListener("input", () => confirmPassword(form));
-    form.elements.confirmation.addEventListener("input", () => confirmPassword(form));
-  });
-  forms.signup.elements.name.addEventListener("input", () => {
-    const input = forms.signup.elements.name;
-    input.setCustomValidity(input.value.trim() && input.value.trim().length < 2 ? "Informe seu nome com pelo menos 2 caracteres." : "");
-  });
+  forms.signup.elements.password.addEventListener("input", () => confirmPassword(forms.signup));
+  forms.signup.elements.confirmation.addEventListener("input", () => confirmPassword(forms.signup));
+  Object.values(forms).forEach((form) => form.elements.username.addEventListener("input", () => {
+    form.elements.username.value = form.elements.username.value.toLowerCase();
+  }));
 
   forms.login.addEventListener("submit", (event) => {
     event.preventDefault();
     // Capture os valores antes de desabilitar os campos para o estado ocupado.
-    const email = forms.login.elements.email.value.trim();
+    const username = forms.login.elements.username.value.trim().toLowerCase();
     const password = forms.login.elements.password.value;
     const remember = forms.login.elements.remember.checked;
     run(forms.login, "Entrando…", async () => {
-      await auth.signIn(email, password, remember);
+      await auth.signIn(username, password, remember);
       forms.login.elements.password.value = "";
       location.replace("index.html");
     });
@@ -136,53 +132,20 @@
   forms.signup.addEventListener("submit", (event) => {
     event.preventDefault();
     confirmPassword(forms.signup);
-    const name = forms.signup.elements.name.value.trim();
-    const email = forms.signup.elements.email.value.trim();
+    const username = forms.signup.elements.username.value.trim().toLowerCase();
     const password = forms.signup.elements.password.value;
+    const website = forms.signup.elements.website.value;
     run(forms.signup, "Criando conta…", async () => {
-      const result = await auth.signUp(name, email, password);
+      await auth.signUp(username, password, website);
       forms.signup.reset();
-      if (!result.requiresConfirmation) { location.replace("index.html"); return; }
-      message("Confira seu e-mail para concluir o cadastro. Abra o link neste mesmo navegador. Se já tiver uma conta, entre ou recupere sua senha.", "success");
+      location.replace("index.html");
     });
-  });
-  forms.recovery.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const email = forms.recovery.elements.email.value.trim();
-    run(forms.recovery, "Enviando link…", async () => {
-      await auth.requestPasswordReset(email);
-      message("Se este e-mail estiver cadastrado, você receberá um link para redefinir a senha. Abra-o neste mesmo navegador.", "success");
-    });
-  });
-  forms.reset.addEventListener("submit", (event) => {
-    event.preventDefault();
-    confirmPassword(forms.reset);
-    const password = forms.reset.elements.password.value;
-    run(forms.reset, "Salvando senha…", async () => {
-      await auth.updatePassword(password);
-      await auth.signOut();
-      forms.reset.reset();
-      setBusy(false);
-      showView("login");
-      message("Senha alterada. Entre com sua nova senha para continuar.", "success");
-    });
-  });
-  document.querySelector("[data-cancel-recovery]").addEventListener("click", async () => {
-    if (busy) return;
-    setBusy(true);
-    await auth.signOut();
-    setBusy(false);
-    showView("login");
-    message("Recuperação cancelada. Você pode solicitar um novo link quando precisar.");
   });
 
   setBusy(true);
   auth.ready.then((verified) => {
     setBusy(false);
-    if (verified && auth.isPasswordRecovery()) {
-      showView("reset", false);
-      message("Seu link foi confirmado. Agora escolha uma nova senha.");
-    } else if (verified) location.replace("index.html");
+    if (verified) location.replace("index.html");
     else if (auth.getLastError()) message(auth.getLastError().message, "error");
     else message();
   }).catch(() => {
