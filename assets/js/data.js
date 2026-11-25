@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  // === 01. CATEGORIAS E LIMITES ===
+  // Define valores aceitos antes do envio. Ao mudar categorias, confira index.html, app.js e supabase/schema.sql.
   const categories = ["Moradia", "Alimentação", "Transporte", "Lazer", "Serviços", "Outros"];
   const defaultBudgetCategories = categories.slice(0, 4);
   const types = ["income", "expense", "transfer"];
@@ -12,6 +14,8 @@
   const maxCents = 99999999999;
   const transactionColumns = "id,user_id,type,description,amount_cents,category,date,recurring,installment,installment_count,series_id,status,created_at";
 
+  // === 02. VALIDACAO DOS DADOS ===
+  // Confere textos, datas, centavos e identificadores antes de consultar o banco.
   function invalid(message, code = "VALIDATION_ERROR") {
     const error = new Error(message);
     error.code = code;
@@ -68,6 +72,8 @@
     return number;
   }
 
+  // === 03. CONTA E CONSULTAS ===
+  // Usa session.js para consultar apenas a conta conectada. path monta o filtro user_id.
   async function session() {
     const auth = window.NivelaSession;
     if (!auth || typeof auth.getUser !== "function" || typeof auth.request !== "function") invalid("A conexão com sua conta ainda não foi preparada.", "AUTH_REQUIRED");
@@ -104,6 +110,8 @@
     return result[0];
   }
 
+  // === 04. LEITURA COMPLETA ===
+  // Lê os registros sem perder dados quando o servidor limita uma resposta. pageSize define o lote; não é paginação da tela.
   async function allRows(context, table, select, order) {
     const records = [];
     let offset = 0;
@@ -115,6 +123,8 @@
     }
   }
 
+  // === 05. CAMPOS DO BANCO ===
+  // Converte nomes como amount_cents para amountCents, usados pelo app.js.
   function profile(row) {
     return { userId: row.user_id, fullName: row.full_name, openingBalanceCents: storedCents(row.opening_balance_cents) };
   }
@@ -136,6 +146,8 @@
     return { id: row.id, name: row.name, targetCents: storedCents(row.target_cents), savedCents: storedCents(row.saved_cents), tone: row.tone };
   }
 
+  // === 06. CARREGAMENTO INICIAL ===
+  // Consulta profiles, budgets, transactions e goals. Conta nova começa vazia e com limites zero.
   async function load() {
     const context = await session();
     const profilePath = path("profiles", context.user.id, { select: "user_id,full_name,opening_balance_cents", limit: "1" });
@@ -169,6 +181,8 @@
     return { profile: profile(first(profiles)), transactions: transactions.map(transaction), budgets: budgets.map(budget), goals: goals.map(goal) };
   }
 
+  // === 07. SALVAR E EDITAR TRANSACOES ===
+  // Valida e envia para transactions. POST cria e PATCH altera; o app.js chama estas funções.
   function transactionFields(input, partial = false) {
     object(input);
     const output = {};
@@ -212,12 +226,16 @@
     return transaction(first(result));
   }
 
+  // === 08. EXCLUIR REGISTROS ===
+  // DELETE remove uma transação ou meta pelo id e pelo dono do registro.
   async function remove(table, id) {
     const context = await session();
     const result = await context.request(path(table, context.user.id, { id: `eq.${uuid(id)}`, select: "id" }), { method: "DELETE", headers: { Prefer: "return=representation" } });
     return { id: first(result).id };
   }
 
+  // === 09. SALVAR ORCAMENTOS ===
+  // Salva limites em budgets, sem duplicar a categoria da pessoa conectada.
   async function saveBudgets(entries) {
     if (!Array.isArray(entries) || entries.length < 1 || entries.length > categories.length) invalid("Informe entre 1 e 6 orçamentos por envio.");
     const values = entries.map((item) => {
@@ -236,6 +254,8 @@
     return (await saveBudgets([{ category, limitCents }]))[0];
   }
 
+  // === 10. SALVAR METAS ===
+  // Cria ou altera goals. As cores aceitas estão na lista tones no início.
   async function saveGoal(input) {
     object(input);
     const context = await session();
@@ -252,6 +272,8 @@
     return goal(first(result));
   }
 
+  // === 11. SALVAR PERFIL ===
+  // Atualiza nome e saldo inicial em profiles. Não altera o usuário de entrada.
   async function saveProfile(changes) {
     object(changes);
     const context = await session();
@@ -263,6 +285,8 @@
     return profile(first(result));
   }
 
+  // === 12. ENVIAR SUPORTE ===
+  // Registra a mensagem em support_messages. Não envia e-mail; devolve o id do protocolo.
   async function sendSupport(input) {
     object(input);
     const context = await session();
@@ -279,6 +303,8 @@
     return { id };
   }
 
+  // === 13. FUNCOES DO BANCO ===
+  // Disponibiliza as operações para app.js; a sessão continua sob responsabilidade de session.js.
   window.NivelaData = Object.freeze({
     load, saveTransactions, updateTransaction, deleteTransaction: (id) => remove("transactions", id),
     saveBudget, saveBudgets, saveGoal, deleteGoal: (id) => remove("goals", id), saveProfile, sendSupport,

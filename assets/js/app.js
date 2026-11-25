@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  // === 01. ELEMENTOS E ESTADO ===
+  // Lê o index.html e guarda os dados carregados por data.js. As categorias usadas na tela ficam aqui.
   const currency = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
   const billsCard = document.querySelector("#contas");
   const transactionsCard = document.querySelector("#transacoes");
@@ -22,6 +24,8 @@
   let loading = false;
   let focusAfterLoad = null;
 
+  // === 02. ELEMENTOS E VALORES ===
+  // Cria elementos com texto seguro e converte reais para centavos. Use cents nos formulários.
   function el(tag, className, text) {
     const node = document.createElement(tag);
     if (className) node.className = className;
@@ -53,11 +57,11 @@
     return amount;
   }
 
+  // === 03. DATAS E CALCULOS ===
+  // Filtra o mês e calcula saldos; pagos entram no resumo, pendentes ficam na agenda e orçamento.
   function monthEntries(month = activeMonth) {
     return state.transactions.filter((item) => item.date.slice(0, 7) === month);
   }
-
-  function monthlyTransactions() { return monthEntries(); }
 
   function monthDate(month, offset = 0) {
     const [year, number] = month.split("-").map(Number);
@@ -88,6 +92,8 @@
     return { text: "Previsto", tone: "neutral" };
   }
 
+  // === 04. CARREGAMENTO E MENSAGENS ===
+  // Busca os dados com NivelaData.load e atualiza #connection-state. Altere as mensagens aqui.
   function notify(message) {
     const feedback = document.querySelector("[data-transaction-feedback]");
     feedback.textContent = message;
@@ -156,6 +162,8 @@
     notify(refreshed ? message : `${message} Atualize o painel para consultar os dados mais recentes.`);
   }
 
+  // === 05. CONTAS E VENCIMENTOS ===
+  // Preenche #contas usando #bill-template. Para mudar a quantidade de datas visíveis, ajuste slice(0, 5).
   function filterBills(date) {
     const items = [...billsCard.querySelectorAll(".bill-list li")];
     items.forEach((item) => { item.hidden = date !== "all" && item.dataset.date !== date; });
@@ -193,19 +201,25 @@
     const incomeList = billsCard.querySelector(".receivable-list");
     expenseList.replaceChildren(); incomeList.replaceChildren();
     items.forEach((item) => {
-      const li = el("li");
+      const li = document.querySelector("#bill-template").content.firstElementChild.cloneNode(true);
       Object.assign(li.dataset, { date: item.date, amountCents: item.amountCents, type: item.type, paid: String(item.status === "paid") });
-      const symbol = el("span", `item-icon tone-${item.type === "income" ? "green" : "blue"}`); symbol.append(icon(item.type === "income" ? "income" : "wallet"));
-      const description = el("div", "bill-description"); description.append(el("strong", "", item.description), el("span", "", `${item.category} · ${dateLabel(item.date)}`));
-      const value = el("div", "bill-value"); const status = statusFor(item);
-      value.append(el("strong", item.type === "income" ? "positive" : "", formatMoney(item.amountCents)), el("span", `badge badge-${status.tone}`, status.text));
+      li.querySelector(".item-icon").classList.add(item.type === "income" ? "tone-green" : "tone-blue");
+      li.querySelector("use").setAttribute("href", `#i-${item.type === "income" ? "income" : "wallet"}`);
+      li.querySelector(".bill-description strong").textContent = item.description;
+      li.querySelector(".bill-description span").textContent = `${item.category} · ${dateLabel(item.date)}`;
+      const value = li.querySelector(".bill-value"); const status = statusFor(item);
+      value.querySelector("strong").textContent = formatMoney(item.amountCents);
+      value.querySelector("strong").classList.toggle("positive", item.type === "income");
+      value.querySelector(".badge").className = `badge badge-${status.tone}`;
+      value.querySelector(".badge").textContent = status.text;
       if (item.status === "pending") value.append(action(item.type === "income" ? "Receber" : "Pagar", () => changeStatus(item, "paid")));
-      li.append(symbol, description, value);
       (item.type === "income" ? incomeList : expenseList).append(li);
     });
     filterBills(selectedDueDate);
   }
 
+  // === 06. TABELA E BUSCA ===
+  // Preenche #transacoes com #transaction-row-template. A busca usa descrição e categoria.
   function filterTransactions() {
     const type = transactionsCard.querySelector(".filter-tab.is-active").dataset.transactionType;
     const search = normalizeText(document.querySelector("#transaction-search").value);
@@ -245,6 +259,8 @@
     filterTransactions();
   }
 
+  // === 07. CADASTRO E EDICAO ===
+  // Liga #transaction-form às funções de data.js e à tabela transactions. Os próximos lançamentos ficam pendentes.
   async function changeStatus(item, status) {
     if (loading) return;
     setAvailable(false);
@@ -294,6 +310,8 @@
     updateScheduleOptions();
   }
 
+  // === 08. RESUMO MENSAL ===
+  // Atualiza .summary-stats. Saldo inclui o saldo inicial e movimentos confirmados até o mês escolhido.
   function updateSummary() {
     const totals = totalsFor(activeMonth); const previousMonth = monthDate(activeMonth, -1); const previous = totalsFor(previousMonth);
     const net = totals.income - totals.expense; const balance = balanceAt(activeMonth);
@@ -313,15 +331,18 @@
     badge.textContent = net < 0 ? "Mês negativo" : net === 0 ? "Mês equilibrado" : "Mês positivo";
     document.querySelector(".summary-insight p").textContent = "O saldo considera pagamentos e recebimentos confirmados. Seus lançamentos pendentes ficam na agenda.";
     document.querySelector(".period-note").textContent = monthLabel(activeMonth);
-    updateCharts(totals.expense);
+    updateCategoryChart(totals.expense);
+    updateBalanceChart();
   }
 
-  function updateCharts(totalExpenses) {
+  // === 09. GRAFICO DE CATEGORIAS ===
+  // Desenha .donut com despesas pagas. As cores vêm das variáveis do style.css.
+  function updateCategoryChart(totalExpenses) {
     const totals = { Moradia: 0, Alimentação: 0, Transporte: 0, Lazer: 0, Outros: 0 };
     monthEntries().filter((item) => item.type === "expense" && item.status === "paid").forEach((item) => { totals[item.category in totals ? item.category : "Outros"] += item.amountCents; });
     const colors = ["var(--brand)", "var(--success)", "var(--warning)", "var(--purple)", "var(--chart-neutral)"];
     let start = 0;
-    const stops = Object.entries(totals).map(([category, amount], index) => {
+    const stops = Object.entries(totals).map(([, amount], index) => {
       const share = totalExpenses ? amount / totalExpenses * 100 : 0; const end = start + share;
       const stop = `${colors[index]} ${start}% ${end}%`; start = end;
       document.querySelectorAll(".chart-legend strong")[index].textContent = `${Math.round(share)}%`; return stop;
@@ -331,6 +352,11 @@
     donut.setAttribute("aria-label", `Despesas pagas: ${formatMoney(totalExpenses)}. ${Object.entries(totals).map(([name, amount]) => `${name}: ${formatMoney(amount)}`).join(". ")}`);
     const largest = Object.entries(totals).sort((a, b) => b[1] - a[1])[0][0];
     document.querySelector(".category-figure .figure-footnote").textContent = totalExpenses ? `${largest} é sua maior despesa paga.` : "Registre despesas para acompanhar a distribuição.";
+  }
+
+  // === 10. HISTORICO DO SALDO ===
+  // Atualiza .bar-chart. Altere o número de meses junto com as seis colunas do index.html.
+  function updateBalanceChart() {
     const months = Array.from({ length: 6 }, (_, index) => monthDate(activeMonth, index - 5));
     const balances = months.map(balanceAt); const maximum = Math.max(10000, ...balances.map(Math.abs)); const ceiling = Math.ceil(maximum / 10000) * 10000;
     document.querySelectorAll(".bar-column").forEach((column, index) => {
@@ -343,6 +369,8 @@
     document.querySelector(".balance-footnote").textContent = "Histórico dos pagamentos e recebimentos confirmados. Valores negativos em vermelho.";
   }
 
+  // === 11. ORCAMENTOS E ALERTAS ===
+  // Compara despesas pagas e previstas com budgets. Altere 80 e 100 para mudar os avisos.
   function updateBudgets() {
     const grid = document.querySelector(".budget-grid"); grid.replaceChildren();
     let remaining = 0; let configured = 0;
@@ -361,6 +389,8 @@
     document.querySelector(".budget-footer p").textContent = configured ? `${remaining < 0 ? "Limites ultrapassados em" : "Disponível nos limites definidos:"} ${formatMoney(Math.abs(remaining))}.` : "Defina limites para acompanhar seus gastos pagos e previstos.";
   }
 
+  // === 12. METAS E ATUALIZACAO DO PAINEL ===
+  // Mostra goals em .goals-grid. Metas acompanham valores guardados, sem alterar o saldo.
   function renderGoals() {
     const grid = document.querySelector(".goals-grid"); grid.replaceChildren();
     document.querySelector(".goals-total").textContent = `${state.goals.length} ${state.goals.length === 1 ? "meta" : "metas"}`;
@@ -380,6 +410,7 @@
   function renderAll() {
     document.querySelector(".profile-details strong").textContent = state.profile.fullName || "Minha conta";
     document.querySelector(".avatar").textContent = (state.profile.fullName || "N").split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toLocaleUpperCase("pt-BR");
+    document.querySelector("table caption").textContent = `Movimentações de ${monthLabel(activeMonth)}. Valores negativos são despesas e valores positivos são receitas.`;
     renderTransactions(); renderBills(); updateSummary(); updateBudgets(); renderGoals();
     const pending = monthEntries().filter((item) => item.status === "pending" && item.type !== "transfer");
     const notices = document.querySelector("[data-notification-list]"); notices.replaceChildren();
@@ -400,7 +431,9 @@
     document.querySelector("#delete-dialog .form-error").hidden = true; openDialog(document.querySelector("#delete-dialog"));
   }
 
-  function initSettings() {
+  // === 13. PERFIL E SALDO INICIAL ===
+  // Envia #profile-form para profiles por data.js. O saldo inicial é somado no resumo.
+  function initProfileForm() {
     const profile = document.querySelector("#profile-form");
     document.querySelector("[data-open-profile]").addEventListener("click", () => {
       profile.elements.fullName.value = state.profile.fullName; profile.elements.openingBalance.value = (state.profile.openingBalanceCents / 100).toFixed(2);
@@ -410,6 +443,11 @@
       event.preventDefault(); if (!profile.reportValidity()) return;
       submitAction(profile, async () => { await window.NivelaData.saveProfile({ fullName: profile.elements.fullName.value.trim(), openingBalanceCents: cents(profile.elements.openingBalance) }); document.querySelector("#profile-dialog").close(); await saved("Perfil atualizado."); });
     });
+  }
+
+  // === 14. FORMULARIO DE LIMITES ===
+  // Monta #budget-form e salva em budgets. Zero significa sem limite.
+  function initBudgetForm() {
     const budgetForm = document.querySelector("#budget-form");
     document.querySelector("[data-open-budget]").addEventListener("click", () => {
       const fields = budgetForm.querySelector("[data-budget-fields]"); fields.replaceChildren();
@@ -426,6 +464,11 @@
         document.querySelector("#budget-dialog").close(); await saved("Limites atualizados.");
       });
     });
+  }
+
+  // === 15. FORMULARIO DE METAS ===
+  // Salva #goal-form em goals. Ajuste os campos no index.html e em data.js.
+  function initGoalForm() {
     document.querySelector("[data-new-goal]").addEventListener("click", () => openGoal());
     const goalForm = document.querySelector("#goal-form");
     goalForm.addEventListener("submit", (event) => {
@@ -435,6 +478,11 @@
         document.querySelector("#goal-dialog").close(); await saved("Meta salva. O valor guardado é um acompanhamento do seu planejamento.");
       });
     });
+  }
+
+  // === 16. CONFIRMACAO DE EXCLUSAO ===
+  // Usa #delete-dialog antes de excluir uma meta ou ocorrência. Outras parcelas continuam salvas.
+  function initDeleteConfirmation() {
     document.querySelector("#confirm-delete").addEventListener("click", async (event) => {
       if (!deletion || event.currentTarget.disabled) return;
       const button = event.currentTarget; button.disabled = true;
@@ -446,6 +494,8 @@
     });
   }
 
+  // === 17. SUPORTE ===
+  // Salva #support-form em support_messages e mostra o protocolo depois da resposta do banco.
   function initSupportForm() {
     const dialog = document.querySelector("#support-dialog"); const form = document.querySelector("#support-form"); const confirmation = document.querySelector("#support-confirmation");
     document.querySelectorAll("[data-open-support]").forEach((button) => button.addEventListener("click", (event) => {
@@ -462,10 +512,12 @@
     });
   }
 
+  // === 18. INICIO DO PAINEL ===
+  // Prepara eventos, aguarda session.js e carrega os dados. #dashboard-month muda o mês exibido.
   async function init() {
     const month = document.querySelector("#dashboard-month"); month.value = activeMonth;
     const time = document.querySelector(".today time"); time.dateTime = referenceDate; time.textContent = now.toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
-    initKeyboardNavigation(); initTransactionFilters(); initDialogs(); initTransactionForm(); initSettings(); initSupportForm();
+    initKeyboardNavigation(); initTransactionFilters(); initDialogs(); initTransactionForm(); initProfileForm(); initBudgetForm(); initGoalForm(); initDeleteConfirmation(); initSupportForm();
     month.addEventListener("change", () => {
       if (!month.reportValidity() || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month.value)) return;
       activeMonth = month.value; selectedDueDate = "all"; renderAll();
@@ -487,6 +539,8 @@
     else { document.querySelector("#connection-state > span").textContent = window.NivelaSession.getLastError()?.message || "Entre na sua conta para consultar seus dados."; }
   }
 
+  // === 19. FORMATACAO E FILTROS ===
+  // Formata reais e compara textos sem acento. Os filtros mudam a lista, sem mudar o resumo.
   function formatMoney(cents) {
     return currency.format(cents / 100);
   }
@@ -522,6 +576,8 @@
     filterTransactions();
   }
 
+  // === 20. PARCELAS E REPETICAO MENSAL ===
+  // Valida datas e cria ocorrências. Altere 12 para a duração da repetição e confira o limite de 24 parcelas no HTML e data.js.
   function isValidDate(value) {
     if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
     const date = new Date(`${value}T12:00:00Z`);
@@ -560,14 +616,13 @@
 
   function createTransactions() {
     const fields = transactionForm.elements;
-    const [whole, fraction = ""] = fields.amount.valueAsNumber.toFixed(2).split(".");
-    const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+    const amountCents = cents(fields.amount);
     const installments = fields.installments.checked ? Number(fields.installmentCount.value) : 1;
     const error = document.querySelector("#transaction-error");
     error.hidden = true;
-    if (!Number.isSafeInteger(cents) || cents <= 0 || !isValidDate(fields.date.value)
+    if (!Number.isSafeInteger(amountCents) || amountCents <= 0 || !isValidDate(fields.date.value)
       || !fields.description.value.trim() || !categories.includes(fields.category.value)
-      || !Number.isInteger(installments) || installments < 1 || installments > 24 || cents < installments) {
+      || !Number.isInteger(installments) || installments < 1 || installments > 24 || amountCents < installments) {
       error.textContent = "Confira os campos. Cada parcela precisa ter pelo menos R$ 0,01.";
       error.hidden = false;
       return null;
@@ -578,7 +633,7 @@
       id: crypto.randomUUID(),
       type: fields.type.value,
       description: fields.description.value.trim(),
-      amountCents: fields.installments.checked ? Math.floor(cents / installments) + (index < cents % installments ? 1 : 0) : cents,
+      amountCents: fields.installments.checked ? Math.floor(amountCents / installments) + (index < amountCents % installments ? 1 : 0) : amountCents,
       category: fields.category.value,
       date: addMonths(fields.date.value, index),
       recurring: fields.recurring.checked,
@@ -587,6 +642,8 @@
     }));
   }
 
+  // === 21. MODAIS E TECLADO ===
+  // Abre .app-dialog, fecha pelo fundo e devolve o foco. Escape é tratado pelo dialog do navegador.
   function openDialog(dialog) {
     if (dialog.open) return;
     const other = document.querySelector("dialog[open]");

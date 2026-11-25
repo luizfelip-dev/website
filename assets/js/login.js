@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  // === 01. FORMULARIOS DE ACESSO ===
+  // Conecta #login-form e #signup-form de login.html a session.js.
   const auth = window.NivelaSession;
   const card = document.querySelector(".login-card");
   const title = document.querySelector("#login-title");
@@ -17,16 +19,17 @@
   let busy = false;
   let view = "login";
 
+  // === 02. MENSAGENS E ABAS ===
+  // Alterna entrar e criar conta e mostra feedback. Os textos dos títulos ficam em headings.
   function message(text = "", kind = "info") {
     feedback.classList.toggle("auth-error", kind === "error");
-    feedback.classList.toggle("auth-success", kind === "success");
     feedback.setAttribute("role", kind === "error" ? "alert" : "status");
     feedback.setAttribute("aria-live", kind === "error" ? "assertive" : "polite");
     feedback.textContent = text;
     feedback.hidden = !text;
   }
 
-  function showView(next, focus = true, keepMessage = false) {
+  function showView(next) {
     if (busy || !forms[next]) return;
     view = next;
     Object.entries(forms).forEach(([name, form]) => { form.hidden = name !== next; });
@@ -48,10 +51,12 @@
       button.setAttribute("aria-label", button.dataset.showLabel || "Mostrar senha");
       button.textContent = "Mostrar";
     });
-    if (!keepMessage) message();
-    if (focus) title.focus();
+    message();
+    title.focus();
   }
 
+  // === 03. ENVIO E VALIDACAO ===
+  // Desabilita o envio durante o pedido e mostra erros. confirmPassword confere as duas senhas.
   function setBusy(value, label) {
     busy = value;
     card.setAttribute("aria-busy", String(value));
@@ -92,6 +97,8 @@
     confirmation.setCustomValidity(confirmation.value && confirmation.value !== form.elements.password.value ? "As senhas precisam ser iguais." : "");
   }
 
+  // === 04. SENHA E AJUDA ===
+  // Liga os botões Mostrar aos campos pelo atributo data-toggle-password. A senha não é salva.
   document.querySelectorAll("[data-toggle-password]").forEach((button) => {
     button.dataset.showLabel = button.getAttribute("aria-label") || "Mostrar senha";
     button.dataset.hideLabel = button.dataset.showLabel.replace(/^Mostrar/, "Ocultar");
@@ -117,6 +124,8 @@
     form.elements.username.value = form.elements.username.value.toLowerCase();
   }));
 
+  // === 05. ENTRAR E CRIAR CONTA ===
+  // Envia os formulários a session.js e abre index.html depois da confirmação do Supabase.
   forms.login.addEventListener("submit", (event) => {
     event.preventDefault();
     // Capture os valores antes de desabilitar os campos para o estado ocupado.
@@ -142,6 +151,8 @@
     });
   });
 
+  // === 06. VERIFICACAO INICIAL ===
+  // Aguarda auth.ready; uma sessão válida abre o painel diretamente.
   setBusy(true);
   auth.ready.then((verified) => {
     setBusy(false);

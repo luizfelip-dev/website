@@ -1,6 +1,8 @@
 (() => {
   "use strict";
 
+  // === 01. CONFIGURACAO DA SESSAO ===
+  // Lê config.js. Endereço e chave pública ficam lá; chaves secretas ficam somente no servidor.
   const loginPage = location.pathname.endsWith("/login.html");
   const config = window.NivelaConfig || {};
   let baseUrl = "";
@@ -11,7 +13,6 @@
   const configured = Boolean(baseUrl && /^sb_publishable_[A-Za-z0-9_-]+$/.test(config.publishableKey || ""));
   const prefix = `nivela.auth.v2:${baseUrl || "unconfigured"}`;
   const sessionKey = `${prefix}:session`;
-  const logoutKey = `${prefix}:logout`;
   const browserKey = `${prefix}:browser`;
   const usernamePattern = /^[a-z0-9_]{3,24}$/;
   const listeners = new Set();
@@ -21,10 +22,9 @@
   let refreshPromise;
   let refreshTimer;
   let epoch = 0;
-  let adoptionSequence = 0;
-  let channel;
-  try { channel = new BroadcastChannel(`${prefix}:events`); } catch { /* storage também sincroniza a saída. */ }
 
+  // === 02. ERROS E TENTATIVAS ===
+  // Traduz erros do Supabase em mensagens. Ajuste os textos e o aviso de espera aqui.
   class AuthError extends Error {
     constructor(message, code = "auth_error", status = 0, retryAfter = 0) {
       super(message);
@@ -78,6 +78,8 @@
     return `Muitas tentativas. Aguarde cerca de ${amount} ${unit}${amount === 1 ? "" : "s"} e tente novamente.`;
   }
 
+  // === 03. ARMAZENAMENTO DA SESSAO ===
+  // Guarda tokens para manter o acesso. Não guarda senha nem lançamentos financeiros.
   function readStore(name, key) {
     try { return window[name].getItem(key); } catch { return null; }
   }
@@ -88,8 +90,8 @@
     try { window[name].removeItem(key); } catch { /* A sessão em memória também é removida. */ }
   }
 
-  function readStoredSession(preferShared = false) {
-    for (const name of preferShared ? ["localStorage", "sessionStorage"] : ["sessionStorage", "localStorage"]) {
+  function readStoredSession() {
+    for (const name of ["sessionStorage", "localStorage"]) {
       try {
         const saved = JSON.parse(readStore(name, sessionKey) || "null");
         if (saved?.version === 2 && saved.project === baseUrl
@@ -109,10 +111,11 @@
     removeStore(target === "localStorage" ? "sessionStorage" : "localStorage", sessionKey);
   }
 
+  // === 04. AVISOS E SAIDA LOCAL ===
+  // Avisa app.js quando a conta muda. Impede que uma resposta antiga substitua a sessão atual.
   function emit(event) {
     const detail = { event, user };
     listeners.forEach((listener) => { try { listener(detail); } catch { /* Um observador não interrompe a autenticação. */ } });
-    window.dispatchEvent(new CustomEvent("nivela:authchange", { detail }));
   }
 
   function clearSession(event = "SIGNED_OUT") {
@@ -130,6 +133,8 @@
     emit(event);
   }
 
+  // === 05. PEDIDOS AO SUPABASE ===
+  // Usa fetch e chave pública. O tempo máximo de espera é 15000 ms.
   async function fetchJson(url, options = {}) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -160,6 +165,8 @@
     } finally { clearTimeout(timeout); }
   }
 
+  // === 06. VALIDACAO DO ACESSO ===
+  // Consulta /auth/v1/user para conferir a sessão no servidor; dados locais não bastam.
   function requireConfig() {
     if (!configured) throw new AuthError("O acesso à conta ainda está sendo preparado. Tente novamente mais tarde.", "configuration_missing");
   }
@@ -176,6 +183,8 @@
     return Object.freeze({ ...verified, username: alias?.[1] || "" });
   }
 
+  // === 07. RENOVACAO DA SESSAO ===
+  // Renova o token antes de expirar. Mantém um pedido por vez para evitar renovações repetidas.
   function scheduleRefresh() {
     clearTimeout(refreshTimer);
     if (!session || !user) return;
@@ -199,9 +208,6 @@
     lastError = null;
     scheduleRefresh();
     emit("SIGNED_IN");
-    if (previousUserId !== user?.id) {
-      try { channel?.postMessage({ type: "SIGNED_IN", userId: user?.id, remember: session?.remember }); } catch { /* storage também compartilha sessões persistentes. */ }
-    }
     if (!session || epoch !== expectedEpoch) throw new AuthError("Esta sessão foi encerrada. Entre novamente.", "session_changed", 409);
     if (!loginPage && previousUserId && previousUserId !== user.id) location.reload();
     return user;
@@ -237,9 +243,8 @@
     return refreshPromise;
   }
 
-  function base64url(bytes) {
-    return btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-  }
+  // === 08. RESTAURAR ACESSO ===
+  // Verifica a sessão salva ao abrir a página e prepara ready, aguardado pelos demais scripts.
   async function initialize() {
     const initializationEpoch = epoch;
     try {
@@ -283,6 +288,8 @@
     return session.access_token;
   }
 
+  // === 09. CONSULTAS AUTENTICADAS ===
+  // Acrescenta o token às consultas /rest/v1 feitas por data.js. Após 401, tenta renovar uma vez.
   async function request(path, options = {}) {
     await ready;
     requireConfig();
@@ -319,6 +326,8 @@
     }
   }
 
+  // === 10. USUARIO SENHA E NAVEGADOR ===
+  // Valida usuário e senha. O identificador do navegador participa do limite de cadastros do servidor.
   function credentials(username, password) {
     const normalized = typeof username === "string" ? username.trim().toLowerCase() : "";
     if (!usernamePattern.test(normalized)) throw new AuthError(friendlyError(422, "invalid_username"), "invalid_username", 422);
@@ -341,6 +350,8 @@
     throw new AuthError("Permita o armazenamento neste navegador para criar sua conta.", "storage_unavailable");
   }
 
+  // === 11. ENTRADA E CADASTRO ===
+  // Login usa Auth; cadastro chama nivela-auth. O endereço interno não é um e-mail solicitado à pessoa.
   async function passwordSignIn(username, password, remember, expectedEpoch) {
     if (epoch !== expectedEpoch) throw new AuthError("A conta conectada mudou. Entre novamente.", "session_changed", 409);
     // O endereço é um identificador interno exigido pelo Auth; nunca é solicitado na interface.
@@ -374,12 +385,11 @@
       throw new AuthError("Sua conta foi criada. Entre com seu usuário e senha para continuar.", "registration_login_failed", error.status, error.retryAfter);
     }
   }
+  // === 12. SAIR DA CONTA ===
+  // Remove a sessão local e pede logout ao Auth. Os dados financeiros continuam no banco.
   async function signOut() {
     const token = session?.access_token;
     clearSession();
-    const notice = { type: "SIGNED_OUT", at: Date.now(), id: base64url(crypto.getRandomValues(new Uint8Array(12))) };
-    try { channel?.postMessage(notice); } catch { /* storage também sincroniza a saída. */ }
-    writeStore("localStorage", logoutKey, JSON.stringify(notice));
     if (token && configured) {
       try { await authRequest("logout?scope=local", { method: "POST", keepalive: true }, token); }
       catch (error) { lastError = error; return { remote: false }; }
@@ -387,27 +397,8 @@
     return { remote: true };
   }
 
-  async function adoptSharedSession(preferShared = false) {
-    const saved = readStoredSession(preferShared);
-    if (!saved) { clearSession(); if (!loginPage) location.replace("login.html"); return; }
-    const previousUserId = user?.id;
-    const expectedEpoch = epoch;
-    const adoption = ++adoptionSequence;
-    try {
-      const verified = await validateUser(saved.access_token);
-      if (epoch !== expectedEpoch || adoption !== adoptionSequence) return;
-      // A rotação do token da mesma pessoa não invalida uma gravação em andamento.
-      if (previousUserId !== verified.id) epoch += 1;
-      session = saved; user = verified; scheduleRefresh(); emit("SIGNED_IN");
-      if (saved.remember) removeStore("sessionStorage", sessionKey);
-      if (!loginPage && previousUserId && previousUserId !== user.id) location.reload();
-    } catch (error) {
-      if (epoch !== expectedEpoch || adoption !== adoptionSequence) return;
-      lastError = error;
-      if ([400, 401, 403].includes(error.status)) { clearSession("SESSION_EXPIRED"); if (!loginPage) location.replace("login.html"); }
-    }
-  }
-
+  // === 13. LIGACAO COM AS PAGINAS ===
+  // Expõe as funções para login.js, data.js e app.js. [data-sign-out] identifica os controles de saída.
   window.NivelaSession = Object.freeze({
     ready, getUser: () => user, getAccessToken, request, signIn, signUp, signOut,
     isConfigured: () => configured, getLastError: () => lastError,
@@ -420,17 +411,6 @@
       await signOut(); location.replace("login.html");
     }));
   });
-  window.addEventListener("storage", (event) => {
-    if (event.key === logoutKey && event.newValue) { clearSession(); if (!loginPage) location.replace("login.html"); }
-    else if (event.key === sessionKey) adoptSharedSession(Boolean(event.newValue)).catch(() => {});
-  });
-  if (channel) channel.onmessage = (event) => {
-    if (event.data?.type === "SIGNED_OUT") { clearSession(); if (!loginPage) location.replace("login.html"); }
-    else if (event.data?.type === "SIGNED_IN" && user && event.data.userId !== user.id) {
-      if (event.data.remember) adoptSharedSession(true).catch(() => {});
-      else { clearSession(); if (!loginPage) location.replace("login.html"); }
-    }
-  };
   window.addEventListener("focus", () => {
     if (!session || !user) return;
     const expectedEpoch = epoch;

@@ -1,9 +1,13 @@
 (() => {
   "use strict";
 
+  // === 01. PREFERENCIAS DE LEITURA ===
+  // Compartilha os controles de index.html e login.html. A chave guarda apenas as preferências locais.
   const key = "nivela.accessibility.v1";
   let preferences = readPreferences();
 
+  // === 02. LER PREFERENCIAS ===
+  // Define os tamanhos permitidos e os padrões. Confira os limites também nos botões abaixo.
   function readPreferences() {
     try {
       const stored = JSON.parse(localStorage.getItem(key) || "{}");
@@ -17,6 +21,8 @@
     }
   }
 
+  // === 03. APLICAR TEMA E FONTE ===
+  // Aplica dark-theme e high-contrast no html; as cores ficam em style.css. Atualiza os controles data-font-step.
   function applyPreferences() {
     const root = document.documentElement;
     root.classList.toggle("dark-theme", preferences.theme === "dark");
@@ -43,6 +49,8 @@
     document.querySelectorAll("[data-high-contrast]").forEach((checkbox) => { checkbox.checked = preferences.highContrast; });
   }
 
+  // === 04. SALVAR PREFERENCIAS ===
+  // Salva tema, fonte e contraste; o painel #accessibility-status anuncia a mudança.
   function updatePreferences(changes) {
     preferences = { ...preferences, ...changes };
     let saved = true;
@@ -56,6 +64,8 @@
     if (status) status.textContent = `${preferences.theme === "dark" ? "Modo escuro" : "Modo claro"}, fonte ${preferences.fontSize.toLocaleString("pt-BR")}%${preferences.highContrast ? ", alto contraste ativo" : ""}.${saved ? " Preferências salvas." : " Preferências aplicadas nesta página."}`;
   }
 
+  // === 05. CONTROLES E MODAL ===
+  // Liga os atalhos e #accessibility-dialog nas duas páginas. Fonte vai de 87,5% a 125%, em passos de 12,5%.
   applyPreferences();
   document.addEventListener("DOMContentLoaded", () => {
     const announcement = document.createElement("p");
@@ -114,8 +124,5 @@
       }
     });
     applyPreferences();
-  });
-  window.addEventListener("storage", (event) => {
-    if (event.key === key) { preferences = readPreferences(); applyPreferences(); }
   });
 })();
