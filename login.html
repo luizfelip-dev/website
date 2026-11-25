@@ -1,46 +1,57 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
+  <!-- === 01. ARQUIVOS E CONFIGURACAO ===
+    Carrega estilos, sessão e preferências. A ordem dos scripts permite aplicar o tema antes da tela aparecer. -->
+    <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Entre no Nivela e organize seu dinheiro com mais clareza.">
     <meta name="theme-color" content="#F8FAFC">
     <title>Entrar — Nivela Controle Financeiro</title>
-    <script src="assets/js/config.js?v=20261123"></script>
-    <script src="assets/js/session.js?v=20261123"></script>
-    <script src="assets/js/accessibility.js?v=20261123"></script>
+    <script src="assets/js/config.js?v=20261125"></script>
+    <script src="assets/js/session.js?v=20261125"></script>
+    <script src="assets/js/accessibility.js?v=20261125"></script>
     <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-    <link rel="stylesheet" href="assets/css/style.css?v=20261123">
-    <link rel="stylesheet" href="assets/css/auth.css?v=20261123">
+    <link rel="stylesheet" href="assets/css/style.css?v=20261125">
     <link rel="preload" href="assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
   </head>
   <body class="login-page">
     <a class="skip-link" href="#login-content">Pular para o login</a>
     <main class="login-main" id="login-content">
-      <header class="login-brand-header"><a class="brand" href="login.html" aria-label="Nivela, página de entrada"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>Nivela</span></a><button class="button button-secondary quick-theme" type="button" data-toggle-theme aria-pressed="false">Modo escuro</button><div class="quick-access" role="group" aria-label="Atalhos de acessibilidade"><button class="button button-secondary" type="button" data-font-step="-1" aria-label="Diminuir tamanho da fonte">A−</button><button class="button button-secondary" type="button" data-font-reset aria-label="Restaurar fonte padrão, 100 por cento" aria-pressed="true">A</button><button class="button button-secondary" type="button" data-font-step="1" aria-label="Aumentar tamanho da fonte">A+</button><button class="button button-secondary" type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button></div></header>
+      <!-- === 02. MARCA E ATALHOS ===
+    Troque textos da marca aqui. accessibility.js trata os atalhos de leitura. -->
+    <header class="login-brand-header"><a class="brand" href="login.html" aria-label="Nivela, página de entrada"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>Nivela</span></a><button class="button button-secondary quick-theme" type="button" data-toggle-theme aria-pressed="false">Modo escuro</button><div class="quick-access" role="group" aria-label="Atalhos de acessibilidade"><button class="button button-secondary" type="button" data-font-step="-1" aria-label="Diminuir tamanho da fonte">A−</button><button class="button button-secondary" type="button" data-font-reset aria-label="Restaurar fonte padrão, 100 por cento" aria-pressed="true">A</button><button class="button button-secondary" type="button" data-font-step="1" aria-label="Aumentar tamanho da fonte">A+</button><button class="button button-secondary" type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button></div></header>
       <div class="login-shell">
-        <section class="login-intro" aria-labelledby="intro-title">
+        <!-- === 03. APRESENTACAO ===
+    Textos e desenho de boas-vindas; os estilos estão no bloco LOGIN do CSS. -->
+    <section class="login-intro" aria-labelledby="intro-title">
           <p class="eyebrow">MAIS CLAREZA. MAIS POSSIBILIDADES.</p>
           <h2 id="intro-title">Seu dinheiro.<br>Seu próximo passo.</h2>
           <p>Organize suas contas, acompanhe suas metas e faça escolhas que aproximam você do que importa.</p>
           <div class="login-visual" aria-hidden="true"><div class="login-mini-card"><span>Um plano para cada conquista</span><div class="login-mini-bars"><i></i><i></i><i></i><i></i><i></i></div><strong>Pequenos passos. Grandes conquistas.</strong></div><span class="login-check">✓</span></div>
           <ul class="login-benefits"><li>Contas organizadas em um só lugar</li><li>Orçamentos para escolhas conscientes</li><li>Metas para os seus próximos capítulos</li></ul>
         </section>
-        <section class="login-card" aria-labelledby="login-title">
+        <!-- === 04. ENTRAR E CRIAR CONTA ===
+    login.js alterna os formulários por data-auth-view. -->
+    <section class="login-card" aria-labelledby="login-title">
           <p class="eyebrow">BOM TER VOCÊ POR AQUI</p>
           <h1 id="login-title" tabindex="-1">Entre na sua conta</h1>
           <p class="login-subtitle" id="auth-subtitle">Vamos cuidar dos seus próximos planos?</p>
           <div class="auth-switch" role="group" aria-label="Acessar ou criar uma conta"><button class="auth-view-button is-active" type="button" data-auth-view="login" aria-pressed="true">Entrar</button><button class="auth-view-button" type="button" data-auth-view="signup" aria-pressed="false">Criar conta</button></div>
           <p class="login-feedback" id="login-feedback" role="status" aria-live="polite">Preparando o acesso à sua conta…</p>
-          <form class="auth-form" id="login-form" aria-labelledby="login-title">
+          <!-- === 05. FORMULARIO DE ENTRADA ===
+    login.js envia usuário, senha e Manter conectado para session.js. -->
+    <form class="auth-form" id="login-form" aria-labelledby="login-title">
             <div class="form-field"><label for="login-username">Usuário</label><input id="login-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" aria-describedby="login-username-help" placeholder="seu_usuario" required><p class="form-help" id="login-username-help">De 3 a 24 letras sem acento, números ou sublinhado (_).</p></div>
             <div class="form-field"><label for="login-password">Senha</label><div class="password-field"><input id="login-password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" data-auth-password required><button type="button" id="toggle-password" data-toggle-password="login-password" aria-label="Mostrar senha" aria-controls="login-password" aria-pressed="false">Mostrar</button></div></div>
             <div class="login-options"><label class="checkbox-option"><input type="checkbox" name="remember">Manter conectado</label><button class="auth-back text-link" type="button" data-auth-help>Ajuda para entrar</button></div>
             <button class="button button-primary login-submit" type="submit" data-auth-submit disabled>Entrar no Nivela <span aria-hidden="true">→</span></button>
           </form>
-          <form class="auth-form" id="signup-form" aria-labelledby="login-title" hidden>
+          <!-- === 06. FORMULARIO DE CADASTRO ===
+    Confirma a senha e chama nivela-auth pelo session.js. O campo Website ajuda a detectar envios automáticos. -->
+    <form class="auth-form" id="signup-form" aria-labelledby="login-title" hidden>
             <div class="form-field"><label for="signup-username">Usuário</label><input id="signup-username" name="username" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" aria-describedby="signup-username-help" placeholder="seu_usuario" required><p class="form-help" id="signup-username-help">De 3 a 24 letras sem acento, números ou sublinhado (_). Sem espaços.</p></div>
-            <div class="form-field"><label for="signup-password">Senha</label><div class="password-field"><input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="signup-password-help" data-auth-password required><button type="button" data-toggle-password="signup-password" aria-label="Mostrar senha do cadastro" aria-controls="signup-password" aria-pressed="false">Mostrar</button></div><p class="form-help" id="signup-password-help">Use de 8 a 128 caracteres. Combine letras, números e símbolos.</p></div>
+            <div class="form-field"><label for="signup-password">Senha</label><div class="password-field"><input id="signup-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="signup-password-help" data-auth-password required><button type="button" data-toggle-password="signup-password" aria-label="Mostrar senha do cadastro" aria-controls="signup-password" aria-pressed="false">Mostrar</button></div><p class="form-help" id="signup-password-help">Use pelo menos 8 caracteres. O limite é de 72 bytes; acentos e símbolos podem ocupar mais espaço.</p></div>
             <div class="form-field"><label for="signup-confirm">Confirme a senha</label><div class="password-field"><input id="signup-confirm" name="confirmation" type="password" autocomplete="new-password" minlength="8" maxlength="72" data-auth-password required><button type="button" data-toggle-password="signup-confirm" aria-label="Mostrar confirmação da senha" aria-controls="signup-confirm" aria-pressed="false">Mostrar</button></div></div>
             <div class="auth-honeypot" aria-hidden="true"><label for="signup-website">Website</label><input id="signup-website" name="website" type="text" autocomplete="off" tabindex="-1"></div>
             <button class="button button-primary login-submit" type="submit" data-auth-submit disabled>Criar minha conta <span aria-hidden="true">→</span></button>
@@ -49,8 +60,12 @@
           <p class="login-disclaimer">Sua senha é enviada com segurança para autenticar sua conta e não é salva neste navegador.</p>
         </section>
       </div>
-      <footer class="page-footer login-footer"><div class="footer-brand"><strong>Nivela — Controle Financeiro</strong><p>© 2026 Nivela. Todos os direitos reservados.</p></div><nav class="footer-nav" aria-label="Ajuda e acessibilidade"><button type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button><button type="button" data-auth-help>Ajuda para entrar</button></nav></footer>
+      <!-- === 07. RODAPE ===
+    Os botões abrem acessibilidade ou mostram a ajuda de login.js. -->
+    <footer class="page-footer login-footer"><div class="footer-brand"><strong>Nivela — Controle Financeiro</strong><p>© 2026 Nivela. Todos os direitos reservados.</p></div><nav class="footer-nav" aria-label="Ajuda e acessibilidade"><button type="button" data-open-accessibility aria-haspopup="dialog" aria-controls="accessibility-dialog" aria-expanded="false">Acessibilidade</button><button type="button" data-auth-help>Ajuda para entrar</button></nav></footer>
     </main>
+    <!-- === 08. ACESSIBILIDADE ===
+    accessibility.js trata este painel, com as mesmas preferências usadas no dashboard. -->
     <dialog class="app-dialog accessibility-dialog" id="accessibility-dialog" data-accessibility-dialog aria-labelledby="accessibility-title" aria-describedby="accessibility-description">
       <header class="dialog-header"><div><h2 id="accessibility-title">Acessibilidade</h2><p id="accessibility-description">Ajuste o Nivela para uma leitura mais confortável.</p></div><button class="dialog-close" type="button" data-close-accessibility aria-label="Fechar acessibilidade">×</button></header>
       <fieldset class="accessibility-fieldset"><legend>Tema da interface</legend><div class="accessibility-buttons"><button class="button button-secondary" type="button" data-theme-choice="light" aria-pressed="true">Modo claro</button><button class="button button-secondary" type="button" data-theme-choice="dark" aria-pressed="false">Modo escuro</button></div></fieldset>
@@ -60,6 +75,8 @@
       <p class="accessibility-status" id="accessibility-status" role="status" aria-live="polite"></p>
       <footer class="dialog-actions"><button class="button button-secondary" type="button" data-reset-accessibility>Restaurar preferências</button><button class="button button-primary" type="button" data-close-accessibility>Concluir</button></footer>
     </dialog>
-    <script src="assets/js/login.js?v=20261123"></script>
+    <!-- === 09. SCRIPT DO LOGIN ===
+    Prepara os eventos depois dos formulários existirem no HTML. -->
+    <script src="assets/js/login.js?v=20261125"></script>
   </body>
 </html>
